@@ -15,7 +15,7 @@ exports.index = async (req, res) => {
             status: "success",
             filter: {
                 is_stock: query.is_stock,
-                is_featured: query.is_featured,
+                featured: query.featured,
                 page,
                 limit,
             },
