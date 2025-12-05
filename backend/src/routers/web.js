@@ -6,10 +6,12 @@ const router = express.Router();
 const UserController = require('../apps/controllers/user');
 const productController = require('../apps/controllers/product');
 
+const orderController = require('../apps/controllers/order');
+
+
 
 // Middlewares
 const checkLoggedIn = require('../apps/middlewares/checkLoggedIn');
-
 
 
 
@@ -27,6 +29,7 @@ router.post('/register/staff', checkLoggedIn('admin'), UserController.registerFo
 
 router.get('/products', productController.index);
 router.get('/products/:id', productController.show);
+router.post('/orders', orderController.order);
 
 
 module.exports = router;
