@@ -2,22 +2,41 @@ const mongoose = require('../../common/database')();
 
 
 const userSchema = new mongoose.Schema({
-    emails:{
+        emails: {
         type: String,
-        require: true,
+        required: true,
     },
-    password:{
+    password: {
         type: String,
-        require: true,
+        required: true,
     },
-    role:{
+    role: {
         type: String,
-        require: true,
+        required: true,
     },
-    full_name:{
+    full_name: {
+        type: String,
+        default: null,
+    },
+
+    phone: {
+        type: String,
+        default: null,
+    },
+
+    addresses: [
+        {
+            province: { type: String, required: true }, // Tỉnh/Thành phố
+            ward: { type: String, required: true },     // Phường/Xã
+            detail: { type: String, required: true },   // Địa chỉ chi tiết
+            is_default: { type: Boolean, default: false } // Có thể đánh dấu địa chỉ mặc định
+        }
+    ],
+
+    avatar: {
         type: String,
         default: null,
     }
-});
+}, { timestamps: true});
 const usersModel = mongoose.model("Users", userSchema, "users");
 module.exports = usersModel;
