@@ -3,7 +3,7 @@ const mongoose = require('../../common/database')();
 
 const userSchema = new mongoose.Schema({
     emails:{
-        type: [String],
+        type: String,
         require: true,
     },
     password:{
