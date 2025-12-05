@@ -2,7 +2,7 @@ const mongoose = require('../../common/database')();
 
 
 const userSchema = new mongoose.Schema({
-        emails: {
+    emails: {
         type: String,
         required: true,
     },
