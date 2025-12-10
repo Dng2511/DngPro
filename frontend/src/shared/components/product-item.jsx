@@ -5,8 +5,8 @@ const ProductItem = ({item}) => {
     
     return (
         <div className="product-item card text-center">
-            <Link to={`/ProductDetails-${item._id}`}><img src={getImgProduct(item.thumbnail)} alt="" /></Link>
-            <h4><Link to={`/ProductDetails-${item._id}`}>{item.name}</Link></h4>
+            <Link to={`/product-details-${item._id}`}><img src={getImgProduct(item.thumbnail)} alt="" /></Link>
+            <h4><Link to={`/product-details-${item._id}`}>{item.name}</Link></h4>
             <p>Giá Bán: <span>{currencyType(item.price)}</span></p>
         </div>
     )
