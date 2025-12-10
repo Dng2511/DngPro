@@ -5,7 +5,7 @@ const router = express.Router();
 // Controllers
 const UserController = require('../apps/controllers/user');
 const productController = require('../apps/controllers/product');
-
+const categoryCtrl = require('../apps/controllers/category');
 const orderController = require('../apps/controllers/order');
 
 
@@ -30,6 +30,12 @@ router.post('/register/staff', checkLoggedIn('admin'), UserController.registerFo
 router.get('/products', productController.index);
 router.get('/products/:id', productController.show);
 router.post('/orders', orderController.order);
+
+router.get('/categories', categoryCtrl.index);
+router.get('/categories/:id', categoryCtrl.searchById);
+router.get('/categories/:id/products', categoryCtrl.catProducts);
+
+
 
 
 module.exports = router;
