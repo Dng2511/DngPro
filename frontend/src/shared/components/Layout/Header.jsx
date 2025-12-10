@@ -36,7 +36,7 @@ const Header = () => {
                             </form>
                         </div>
                         <div id="cart" className="col-lg-3 col-md-3 col-sm-12">
-                            <Link className="mt-4 mr-2" to="/Cart">giỏ hàng</Link><span className="mt-3">{items.length}</span>
+                            <Link className="mt-4 mr-2" to="/login" style={{ display: "inline-flex", alignItems: "center", fontSize: "16px" }}>Đăng nhập</Link>
                         </div>
                     </div>
                 </div>
