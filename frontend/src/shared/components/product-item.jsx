@@ -4,10 +4,12 @@ import { Link } from "react-router-dom";
 const ProductItem = ({item}) => {
     
     return (
-        <div className="product-item card text-center">
-            <Link to={`/product-details-${item._id}`}><img src={getImgProduct(item.thumbnail)} alt="" /></Link>
-            <h4><Link to={`/product-details-${item._id}`}>{item.name}</Link></h4>
+        <div className="text-center product-item card ">
+
+            <Link to={`/products/${item._id}`}><img src={getImgProduct(item.thumbnail)} alt="" />
+            <h4>{item.name}</h4>
             <p>Giá Bán: <span>{currencyType(item.price)}</span></p>
+            </Link>
         </div>
     )
 }
