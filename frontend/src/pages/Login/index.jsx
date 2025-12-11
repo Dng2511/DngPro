@@ -7,7 +7,6 @@ const Login = () => {
     const navigate = useNavigate();
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
-    const [role, setRole] = useState("customer");
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
     const [success, setSuccess] = useState("");
@@ -27,20 +26,17 @@ const Login = () => {
 
             const response = await postLogin({
                 email,
-                password,
-                role
-            }, role);
+                password
+            }, "customer");
 
             if (response.data.status === "success") {
                 setSuccess("Đăng nhập thành công!");
                 // Lưu token và user info vào localStorage
+                console.log(response.data);
+
                 localStorage.setItem("token", response.data.token);
                 localStorage.setItem("user", JSON.stringify(response.data.data));
-
-                // Redirect về trang chủ sau 1 giây
-                setTimeout(() => {
-                    navigate("/");
-                }, 1000);
+                navigate("/");
             }
         } catch (err) {
             if (err.response?.data?.message) {
@@ -90,21 +86,6 @@ const Login = () => {
                             onChange={(e) => setPassword(e.target.value)}
                             disabled={loading}
                         />
-                    </div>
-
-                    <div className="form-group">
-                        <label htmlFor="role">Loại tài khoản</label>
-                        <select
-                            className="form-control"
-                            id="role"
-                            value={role}
-                            onChange={(e) => setRole(e.target.value)}
-                            disabled={loading}
-                        >
-                            <option value="customer">Khách hàng</option>
-                            <option value="admin">Quản trị viên</option>
-                            <option value="staff">Nhân viên</option>
-                        </select>
                     </div>
 
                     <button
