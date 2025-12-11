@@ -1,11 +1,14 @@
 import React from "react";
 import { useSelector } from "react-redux";
 import { Link, useNavigate } from "react-router-dom"
+import { useAuth } from "../../../hooks/useAuth";
 
 const Header = () => {
     const navigate = useNavigate();
     const items = useSelector(({ cart }) => cart.items);
+    const { user, isLoggedIn, logout } = useAuth();
     const [keyword, setKeyword] = React.useState([]);
+    const [showDropdown, setShowDropdown] = React.useState(false);
     const onChangeKeyword = (e) => {
         setKeyword(e.target.value);
     }
@@ -13,6 +16,10 @@ const Header = () => {
         e.preventDefault();
         navigate(`/Search?name=${keyword}`)
         setKeyword("");
+    }
+    const handleLogout = () => {
+        logout();
+        navigate("/");
     }
 
     return (
@@ -36,7 +43,88 @@ const Header = () => {
                             </form>
                         </div>
                         <div id="cart" className="col-lg-3 col-md-3 col-sm-12">
-                            <Link className="mt-4 mr-2" to="/login" style={{ display: "inline-flex", alignItems: "center", fontSize: "16px" }}>Đăng nhập</Link>
+                            {isLoggedIn && user ? (
+                                <div className="mt-4 mr-2" style={{ display: "inline-flex", alignItems: "center", fontSize: "16px", gap: "10px", position: "relative" }}>
+                                    <div style={{ position: "relative" }}>
+                                        <div
+                                            onClick={() => setShowDropdown(!showDropdown)}
+                                            style={{
+                                                width: "36px",
+                                                height: "36px",
+                                                borderRadius: "50%",
+                                                backgroundColor: "#007bff",
+                                                display: "flex",
+                                                alignItems: "center",
+                                                justifyContent: "center",
+                                                color: "white",
+                                                fontWeight: "bold",
+                                                fontSize: "14px",
+                                                cursor: "pointer"
+                                            }}
+                                            title={user.name || "User"}
+                                        >
+                                            {user.name ? user.name.charAt(0).toUpperCase() : "A"}
+                                        </div>
+                                        {showDropdown && (
+                                            <div style={{
+                                                position: "absolute",
+                                                top: "100%",
+                                                left: "0",
+                                                right: "auto",
+                                                backgroundColor: "white",
+                                                border: "1px solid #ddd",
+                                                borderRadius: "4px",
+                                                boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
+                                                minWidth: "150px",
+                                                zIndex: 1000,
+                                                marginTop: "8px"
+                                            }}>
+                                                <Link to="/profile" style={{
+                                                    display: "block",
+                                                    padding: "10px 15px",
+                                                    color: "#333",
+                                                    textDecoration: "none",
+                                                    borderBottom: "1px solid #eee",
+                                                    cursor: "pointer"
+                                                }} onClick={() => setShowDropdown(false)}>
+                                                    👤 Trang cá nhân
+                                                </Link>
+                                                <Link to="/cart" style={{
+                                                    display: "block",
+                                                    padding: "10px 15px",
+                                                    color: "#333",
+                                                    textDecoration: "none",
+                                                    borderBottom: "1px solid #eee",
+                                                    cursor: "pointer"
+                                                }} onClick={() => setShowDropdown(false)}>
+                                                    🛒 Giỏ hàng
+                                                </Link>
+                                                <button
+                                                    onClick={() => {
+                                                        setShowDropdown(false);
+                                                        handleLogout();
+                                                    }}
+                                                    style={{
+                                                        display: "block",
+                                                        width: "100%",
+                                                        padding: "10px 15px",
+                                                        color: "#d32f2f",
+                                                        background: "none",
+                                                        border: "none",
+                                                        textAlign: "left",
+                                                        cursor: "pointer",
+                                                        fontSize: "14px"
+                                                    }}
+                                                >
+                                                    Đăng xuất
+                                                </button>
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+                            ) : (
+                                <Link className="mt-4 mr-2" to="/login" style={{ display: "inline-flex", alignItems: "center", fontSize: "16px" }}>Đăng nhập</Link>
+                            )}
                         </div>
                     </div>
                 </div>
