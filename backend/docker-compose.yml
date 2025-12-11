@@ -1,0 +1,53 @@
+version: '3.8'
+
+services:
+  mongodb:
+    image: mongo:latest
+    container_name: vp_shop_mongodb
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${DB_USER}
+      MONGO_INITDB_ROOT_PASSWORD: ${DB_PASS}
+      MONGO_INITDB_DATABASE: ${DB_NAME}
+    volumes:
+      - mongo_data:/data/db
+    networks:
+      - vp_shop_network
+    healthcheck:
+      test: echo 'db.runCommand("ping").ok' | mongosh localhost/test --quiet
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    command: --auth
+
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: dngpro_backend
+    ports:
+      - "${PORT:-8000}:8000"
+    depends_on:
+      mongodb:
+        condition: service_healthy
+    environment:
+      PORT: ${PORT:-8000}
+      PREFIX_API_VERSION: ${PREFIX_API_VERSION:-/api/v1}
+      DB_URI: mongodb://${DB_USER}:${DB_PASS}@mongodb:27017/${DB_NAME}?authSource=admin
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_EXPIRES_IN: ${JWT_EXPIRES_IN:-7d}
+    volumes:
+      - .:/app
+      - /app/node_modules
+    networks:
+      - vp_shop_network
+    command: npm start
+
+volumes:
+  mongo_data:
+    driver: local
+
+networks:
+  vp_shop_network:
+    driver: bridge
