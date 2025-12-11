@@ -15,6 +15,8 @@ import ProductDetails from "./pages/ProductDetails";
 import Search from "./pages/Search";
 import Cart from "./pages/Cart";
 import Success from "./pages/Success";
+import Login from "./pages/Login";
+import Register from "./pages/Register";
 import NotFound from "./pages/NotFound";
 //Redux
 
@@ -26,39 +28,49 @@ const App = () => {
   return (
     <Provider store={store}>
       <BrowserRouter>
-        <div>
-          <Header />
-          {/*	Body	*/}
-          <div id="body">
-            <div className="container">
-              <div className="row">
-                <div className="col-lg-12 col-md-12 col-sm-12">
-                  <Menu />
-                </div>
-              </div>
-              <div className="row">
-                <div id="main" className="col-lg-8 col-md-12 col-sm-12">
-                  <Slider />
-                  
-                  <Routes>
-                    <Route path="/" element={<Home/>}/>
-                    <Route path="/Category-:id" element={<Category/>}/>
-                    <Route path="/ProductDetails-:id" element={<ProductDetails/>}/>
-                    <Route path="/Search" element={<Search/>}/>
-                    <Route path="/Cart" element={<Cart/>}/>
-                    <Route path="/Success" element={<Success/>}/>
-                    <Route path="*" element={<NotFound/>}/>
-                  </Routes>
+        <Routes>
+          {/* Full page routes */}
+          <Route path="/Login" element={<Login />} />
+          <Route path="/Register" element={<Register />} />
 
-                  
+          {/* Layout routes */}
+          <Route
+            path="*"
+            element={
+              <div>
+                <Header />
+                {/*	Body	*/}
+                <div id="body">
+                  <div className="container">
+                    <div className="row">
+                      <div className="col-lg-12 col-md-12 col-sm-12">
+                        <Menu />
+                      </div>
+                    </div>
+                    <div className="row">
+                      <div id="main" className="col-lg-8 col-md-12 col-sm-12">
+                        <Slider />
+
+                        <Routes>
+                          <Route path="/" element={<Home />} />
+                          <Route path="/Category-:id" element={<Category />} />
+                          <Route path="/ProductDetails-:id" element={<ProductDetails />} />
+                          <Route path="/Search" element={<Search />} />
+                          <Route path="/Cart" element={<Cart />} />
+                          <Route path="/Success" element={<Success />} />
+                          <Route path="*" element={<NotFound />} />
+                        </Routes>
+                      </div>
+                      <Sidebar />
+                    </div>
+                  </div>
                 </div>
-                <Sidebar />
+                {/*	End Body	*/}
+                <Footer />
               </div>
-            </div>
-          </div>
-          {/*	End Body	*/}
-          <Footer />
-        </div>
+            }
+          />
+        </Routes>
       </BrowserRouter>
     </Provider>
   )
