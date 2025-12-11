@@ -18,7 +18,7 @@ const Menu = () => {
                     <ul>
                         {
                             categories.map((item)=>
-                                <Link to={`/category-${item._id}`}><li className="menu-item">{item.title}</li></Link>
+                                <Link to={`/categories/${item._id}`}><li className="menu-item">{item.title}</li></Link>
                             )
                         }
                     </ul>

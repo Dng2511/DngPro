@@ -32,6 +32,7 @@ const App = () => {
           {/* Full page routes */}
           <Route path="/Login" element={<Login />} />
           <Route path="/Register" element={<Register />} />
+          <Route path="*" element={<NotFound />} />
 
           {/* Layout routes */}
           <Route
@@ -49,16 +50,16 @@ const App = () => {
                     </div>
                     <div className="row">
                       <div id="main" className="col-lg-8 col-md-12 col-sm-12">
-                        <Slider />
+                        
 
                         <Routes>
                           <Route path="/" element={<Home />} />
-                          <Route path="/Category-:id" element={<Category />} />
-                          <Route path="/ProductDetails-:id" element={<ProductDetails />} />
-                          <Route path="/Search" element={<Search />} />
-                          <Route path="/Cart" element={<Cart />} />
-                          <Route path="/Success" element={<Success />} />
-                          <Route path="*" element={<NotFound />} />
+                          <Route path="/categories/:id" element={<Category />} />
+                          <Route path="/products/:id" element={<ProductDetails />} />
+                          <Route path="/search" element={<Search />} />
+                          <Route path="/cart" element={<Cart />} />
+                          <Route path="/success" element={<Success />} />
+                          
                         </Routes>
                       </div>
                       <Sidebar />

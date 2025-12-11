@@ -44,33 +44,26 @@ const Header = () => {
                         </div>
                         <div id="cart" className="col-lg-3 col-md-3 col-sm-12">
                             {isLoggedIn && user ? (
-                                <div className="mt-4 mr-2" style={{ display: "inline-flex", alignItems: "center", fontSize: "16px", gap: "10px", position: "relative" }}>
+                                <div style={{ display: "inline-flex", alignItems: "center", justifyContent: "flex-end", width: "100%", height: "60px", fontSize: "16px", gap: "10px", position: "relative" }}>
                                     <div style={{ position: "relative" }}>
-                                        <div
+                                        <img
                                             onClick={() => setShowDropdown(!showDropdown)}
+                                            src={`https://ui-avatars.com/api/?name=${user.full_name || 'User'}&background=random`}
+                                            alt={user.full_name || "User"}
+                                            title={user.full_name || "User"}
                                             style={{
                                                 width: "36px",
                                                 height: "36px",
                                                 borderRadius: "50%",
-                                                backgroundColor: "#007bff",
-                                                display: "flex",
-                                                alignItems: "center",
-                                                justifyContent: "center",
-                                                color: "white",
-                                                fontWeight: "bold",
-                                                fontSize: "14px",
-                                                cursor: "pointer"
+                                                cursor: "pointer",
                                             }}
-                                            title={user.name || "User"}
-                                        >
-                                            {user.name ? user.name.charAt(0).toUpperCase() : "A"}
-                                        </div>
+                                        />
                                         {showDropdown && (
                                             <div style={{
                                                 position: "absolute",
                                                 top: "100%",
-                                                left: "0",
-                                                right: "auto",
+                                                right: "-10px",
+                                                left: "auto",
                                                 backgroundColor: "white",
                                                 border: "1px solid #ddd",
                                                 borderRadius: "4px",
@@ -85,7 +78,8 @@ const Header = () => {
                                                     color: "#333",
                                                     textDecoration: "none",
                                                     borderBottom: "1px solid #eee",
-                                                    cursor: "pointer"
+                                                    cursor: "pointer",
+                                                    textAlign: "left"
                                                 }} onClick={() => setShowDropdown(false)}>
                                                     👤 Trang cá nhân
                                                 </Link>
@@ -95,7 +89,8 @@ const Header = () => {
                                                     color: "#333",
                                                     textDecoration: "none",
                                                     borderBottom: "1px solid #eee",
-                                                    cursor: "pointer"
+                                                    cursor: "pointer",
+                                                    textAlign: "left"
                                                 }} onClick={() => setShowDropdown(false)}>
                                                     🛒 Giỏ hàng
                                                 </Link>

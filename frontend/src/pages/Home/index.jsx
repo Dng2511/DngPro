@@ -1,6 +1,7 @@
 import React from "react";
 import { getProducts } from "../../services/Api";
 import ProductItem from "../../shared/components/product-item";
+import Slider from "../../shared/components/Layout/Slider";
 const Home = () => {
     const [prominentProducts, setProminentProducts] = React.useState([]);
     const [newProducts, setNewProduct] = React.useState([]);
@@ -23,6 +24,7 @@ const Home = () => {
     }, [])
     return (
         <>
+            <Slider />
             {/*	Feature Product	*/}
             <div className="products">
                 <h3>Sản phẩm nổi bật</h3>
