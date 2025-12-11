@@ -15,7 +15,7 @@ services:
     networks:
       - vp_shop_network
     healthcheck:
-      test: echo 'db.runCommand("ping").ok' | mongosh localhost/test --quiet
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')", "--quiet"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -25,7 +25,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: dngpro_backend
+    container_name: dngpro-backend-node
     ports:
       - "${PORT:-8000}:8000"
     depends_on:
