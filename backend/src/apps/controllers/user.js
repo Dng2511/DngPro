@@ -232,11 +232,24 @@ exports.addAddress = async (req, res) => {
             is_default: is_default || false,
         };
 
-        const user = await UserModel.findByIdAndUpdate(
-            userId,
-            { $push: { addresses: newAddress } },
-            { new: true }
-        ).select("-password");
+        let user;
+        if (is_default) {
+            // If new address is default, set all other addresses to not default
+            user = await UserModel.findByIdAndUpdate(
+                userId,
+                {
+                    $set: { "addresses.$[].is_default": false },
+                    $push: { addresses: newAddress },
+                },
+                { new: true }
+            ).select("-password");
+        } else {
+            user = await UserModel.findByIdAndUpdate(
+                userId,
+                { $push: { addresses: newAddress } },
+                { new: true }
+            ).select("-password");
+        }
 
         // Get the newly added address
         const addedAddress = user.addresses[user.addresses.length - 1];
@@ -260,6 +273,15 @@ exports.updateAddress = async (req, res) => {
 
         if (!province || !ward || !detail) {
             return res.status(400).json({ status: "error", message: "Province, ward, and detail are required" });
+        }
+
+        if (is_default) {
+            // If this address is set as default, set all addresses to not default first
+            await UserModel.findByIdAndUpdate(
+                userId,
+                { $set: { "addresses.$[].is_default": false } },
+                { new: true }
+            );
         }
 
         const user = await UserModel.findOneAndUpdate(
