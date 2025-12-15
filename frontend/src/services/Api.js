@@ -15,3 +15,4 @@ export const postOrder = (data, config) => Http.post("/orders", data, config);
 // Auth APIs
 export const postLogin = (data, role) => Http.post(`/login/${role}`, data);
 export const postRegister = (data) => Http.post("/register/customer", data);
+export const getProfile = (config) => Http.get("/profile", config);

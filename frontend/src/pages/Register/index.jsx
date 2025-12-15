@@ -74,7 +74,7 @@ const Register = () => {
                 // Redirect về trang login sau 2 giây
                 setTimeout(() => {
                     navigate("/Login");
-                }, 2000);
+                }, 500);
             }
         } catch (err) {
             if (err.response?.data?.message) {

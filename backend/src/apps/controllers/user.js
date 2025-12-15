@@ -105,3 +105,29 @@ exports.index = async (req, res) => {
     }
 };
 
+exports.getProfile = async (req, res) => {
+    try {
+        if (!req.params.id) {
+            // Lấy profile của chính mình
+            const user = await UserModel.findById(req.user._id).select("-password");
+            return res.status(200).json({
+                status: "success",
+                data: user,
+            });
+        }
+        const user_id = req.params.id;
+        const user = await UserModel.findById(user_id).select("-password");
+        if (!user) {
+            return res.status(404).json({
+                status: "error",
+                message: "User not found",
+            });
+        }
+        res.status(200).json({
+            status: "success",
+            data: user,
+        });
+    } catch (error) {
+        res.status(500).json({ status: "error", message: "Internal server error" });
+    }
+}

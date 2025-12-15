@@ -1,12 +1,12 @@
 import React from "react";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 
 // Import Layout
 import Footer from "./shared/components/Layout/Footer";
 import Header from "./shared/components/Layout/Header";
 import Menu from "./shared/components/Layout/Menu";
 import Sidebar from "./shared/components/Layout/Sidebar";
-import Slider from "./shared/components/Layout/Slider";
+
 
 // Import Pages
 import Home from "./pages/Home";
@@ -18,6 +18,7 @@ import Success from "./pages/Success";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import NotFound from "./pages/NotFound";
+import Profile from "./pages/Profile";
 //Redux
 
 import { Provider } from "react-redux";
@@ -32,7 +33,8 @@ const App = () => {
           {/* Full page routes */}
           <Route path="/Login" element={<Login />} />
           <Route path="/Register" element={<Register />} />
-          <Route path="*" element={<NotFound />} />
+          <Route path="/404" element={<NotFound />} />
+          
 
           {/* Layout routes */}
           <Route
@@ -59,6 +61,8 @@ const App = () => {
                           <Route path="/search" element={<Search />} />
                           <Route path="/cart" element={<Cart />} />
                           <Route path="/success" element={<Success />} />
+                          <Route path="/profile" element={<Profile />} />
+                          <Route path="*" element={<Navigate to="/404" />} />
                           
                         </Routes>
                       </div>
@@ -71,6 +75,7 @@ const App = () => {
               </div>
             }
           />
+          
         </Routes>
       </BrowserRouter>
     </Provider>

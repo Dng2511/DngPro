@@ -24,6 +24,8 @@ router.get('/', (req, res) => {
 router.post('/register/customer', UserController.registerForCustomer);
 router.post('/login/:role', UserController.login);
 router.post('/register/staff', checkLoggedIn('admin'), UserController.registerForStaff);
+router.get('/profile', checkLoggedIn('customer'), UserController.getProfile);
+router.get('/profile/:id', checkLoggedIn('staff'), UserController.getProfile);
 
 
 
@@ -34,6 +36,8 @@ router.post('/orders', orderController.order);
 router.get('/categories', categoryCtrl.index);
 router.get('/categories/:id', categoryCtrl.searchById);
 router.get('/categories/:id/products', categoryCtrl.catProducts);
+
+
 
 
 
