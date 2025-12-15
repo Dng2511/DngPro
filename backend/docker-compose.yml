@@ -19,7 +19,6 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
-    command: --auth
 
   backend:
     build:
@@ -51,3 +50,5 @@ volumes:
 networks:
   vp_shop_network:
     driver: bridge
+
+
