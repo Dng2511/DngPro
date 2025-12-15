@@ -50,10 +50,10 @@ const ChangePasswordModal = ({ onClose, onSuccess }) => {
                 newPassword: formData.newPassword,
             });
 
-            if (result.status === "success") {
+            if (result.data.status === "success") {
                 onSuccess();
             } else {
-                setError(result.message || "Failed to change password");
+                setError(result.data.message || "Failed to change password");
             }
         } catch (err) {
             setError("Error changing password");
