@@ -235,12 +235,13 @@ exports.addAddress = async (req, res) => {
         let user;
         if (is_default) {
             // If new address is default, set all other addresses to not default
+            await UserModel.updateOne(
+                { _id: userId },
+                { $set: { "addresses.$[].is_default": false } }
+            );
             user = await UserModel.findByIdAndUpdate(
                 userId,
-                {
-                    $set: { "addresses.$[].is_default": false },
-                    $push: { addresses: newAddress },
-                },
+                { $push: { addresses: newAddress } },
                 { new: true }
             ).select("-password");
         } else {
@@ -260,7 +261,7 @@ exports.addAddress = async (req, res) => {
             data: addedAddress,
         });
     } catch (error) {
-        res.status(500).json({ status: "error", message: "Internal server error" });
+        res.status(500).json({ status: "error", message: error });
     }
 };
 

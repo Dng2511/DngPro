@@ -3,8 +3,8 @@ import { useAuth } from "../../hooks/useAuth";
 import { getProfile, updateEmail, updatePhone, deleteAddress } from "../../services/Api";
 import "./profile.css";
 import ChangePasswordModal from "./ChangePasswordModal";
-import AddAddressModal from "./AddAddressModal";
-import EditAddressModal from "./EditAddressModal";
+import AddAddress from "../../shared/components/Address/AddAddress";
+import EditAddress from "../../shared/components/Address/EditAddress";
 
 const Profile = () => {
     const auth = useAuth();
@@ -318,14 +318,14 @@ const Profile = () => {
             )}
 
             {showAddAddress && (
-                <AddAddressModal
+                <AddAddress
                     onClose={() => setShowAddAddress(false)}
                     onSuccess={handleAddressAdded}
                 />
             )}
 
             {showEditAddress && selectedAddress && (
-                <EditAddressModal
+                <EditAddress
                     address={selectedAddress}
                     onClose={() => {
                         setShowEditAddress(false);
