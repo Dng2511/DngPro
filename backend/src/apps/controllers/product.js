@@ -3,8 +3,12 @@ const pagination = require("../../libs/pagination");
 exports.index = async (req, res) => {
     try {
         const query = {};
-        query.is_stock = req.query.is_stock || true;
-        query.featured = req.query.featured || false;
+        if (req.query.is_stock !== undefined) {
+            query.is_stock = req.query.is_stock === "true";
+        }
+        if (req.query.featured !== undefined) {
+            query.featured = req.query.featured === "true";
+        }
         if (req.query.name) query.$text = { $search: req.query.name };
         const page = parseInt(req.query.page) || 1;
         const limit = parseInt(req.query.limit) || 12;

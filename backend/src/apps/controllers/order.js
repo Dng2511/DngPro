@@ -1,22 +1,43 @@
 const OrderModel = require("../models/order")
+const ProductModel = require("../models/product")  
 
 exports.order = async (req, res) => {
     const { name, mail, phone, add, items } = req.body;
-    try
-    {
+    try {
+        const productIds = items.map(item => item._id);
+        
+        const productsInDb = await ProductModel.find({ _id: { $in: productIds } });
+
+        const productMap = {};
+        productsInDb.forEach(p => {
+            productMap[p._id.toString()] = p;
+        });
+
+        let totalPrice = 0;
+        const orderItems = items.map(item => {
+            const dbProduct = productMap[item._id];
+            if (!dbProduct) {
+                throw new Error(`Sản phẩm với ID ${item._id} không tồn tại hoặc đã bị xóa.`);
+            }
+            const price = dbProduct.price; 
+            totalPrice += price * item.qty;
+            
+            return {
+                prd_id: item._id,
+                qty: item.qty,
+                price: price 
+            };
+        });
+
         const newOrder = {
-            totalPrice: items.reduce((total, item) => total + item.price * item.qty, 0),
+            totalPrice: totalPrice, 
             fullName: name,
             address: add,
             email: mail,
             phone: phone,
             method: 1,
-            items: items.map(item => ({
-                prd_id: item._id,
-                qty: item.qty,
-                price: item.price
-            }))
-        }
+            items: orderItems
+        };
         await new OrderModel(newOrder).save();
         return res.status(200).json({
             status: "success",
