@@ -2,6 +2,8 @@ import React from "react";
 import { useSelector } from "react-redux";
 import { Link, useNavigate } from "react-router-dom"
 import { useAuth } from "../../../hooks/useAuth";
+import { useDispatch } from "react-redux";
+import { SET_CART } from "../../constants/action-type";  
 
 const Header = () => {
     const navigate = useNavigate();
@@ -9,6 +11,7 @@ const Header = () => {
     const { user, isLoggedIn, logout } = useAuth();
     const [keyword, setKeyword] = React.useState([]);
     const [showDropdown, setShowDropdown] = React.useState(false);
+    const dispatch = useDispatch();
     const onChangeKeyword = (e) => {
         setKeyword(e.target.value);
     }
@@ -18,6 +21,7 @@ const Header = () => {
         setKeyword("");
     }
     const handleLogout = () => {
+        dispatch({ type: SET_CART, payload: [] });
         logout();
         navigate("/");
     }

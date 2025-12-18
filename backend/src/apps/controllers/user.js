@@ -1,4 +1,5 @@
 const UserModel = require("../models/user");
+const ProductModel = require("../models/product");
 const bcrypt = require("bcrypt");
 
 const createToken = require("../../libs/createToken");
@@ -92,7 +93,7 @@ exports.login = async (req, res) => {
 exports.index = async (req, res) => {
     try {
         const users = await UserModel.find()
-            .select("-password") // không trả về mật khẩu
+            .select("-password -cart") // không trả về mật khẩu và giỏ hàng
             .sort({ _id: -1 })
             .skip(skip)
             .limit(limit);
@@ -109,7 +110,7 @@ exports.index = async (req, res) => {
 exports.getProfile = async (req, res) => {
     try {
         const userId = req.user._id;
-        const user = await UserModel.findById(userId).select("-password");
+        const user = await UserModel.findById(userId).select("-password -cart");
         if (!user) {
             return res.status(404).json({ status: "error", message: "User not found" });
         }
@@ -118,7 +119,7 @@ exports.getProfile = async (req, res) => {
             data: user,
         });
     } catch (error) {
-        res.status(500).json({ status: "error", message: "Internal server error" });
+        res.status(500).json({ status: "error", message: error });
     }
 };
 
@@ -142,7 +143,7 @@ exports.updateEmail = async (req, res) => {
             userId,
             { email },
             { new: true }
-        ).select("-password");
+        ).select("-password -cart");
 
         res.status(200).json({
             status: "success",
@@ -168,7 +169,7 @@ exports.updatePhone = async (req, res) => {
             userId,
             { phone },
             { new: true }
-        ).select("-password");
+        ).select("-password -cart");
 
         res.status(200).json({
             status: "success",
@@ -243,13 +244,13 @@ exports.addAddress = async (req, res) => {
                 userId,
                 { $push: { addresses: newAddress } },
                 { new: true }
-            ).select("-password");
+            ).select("-password -cart");
         } else {
             user = await UserModel.findByIdAndUpdate(
                 userId,
                 { $push: { addresses: newAddress } },
                 { new: true }
-            ).select("-password");
+            ).select("-password -cart");
         }
 
         // Get the newly added address
@@ -296,7 +297,7 @@ exports.updateAddress = async (req, res) => {
                 },
             },
             { new: true }
-        ).select("-password");
+        ).select("-password -cart");
 
         if (!user) {
             return res.status(404).json({ status: "error", message: "Address not found" });
@@ -325,7 +326,7 @@ exports.deleteAddress = async (req, res) => {
             userId,
             { $pull: { addresses: { _id: addressId } } },
             { new: true }
-        ).select("-password");
+        ).select("-password -cart");
 
         if (!user) {
             return res.status(404).json({ status: "error", message: "Address not found" });
@@ -340,4 +341,103 @@ exports.deleteAddress = async (req, res) => {
         res.status(500).json({ status: "error", message: "Internal server error" });
     }
 };
+
+
+// Get Cart
+exports.getCart = async (req, res) => {
+    try {
+        const userId = req.user._id;
+
+        const cart = await UserModel.findById(userId)
+            .select("cart")
+            .populate({
+                path: "cart.product_id",
+                select: "_id name thumbnail price"
+            });
+
+        const formattedCart = cart.cart.map(item => ({
+            _id: item.product_id._id,
+            name: item.product_id.name,
+            thumbnail: item.product_id.thumbnail,
+            price: item.product_id.price,
+            qty: item.quantity,
+        }));
+
+        res.status(200).json({
+            status: "success",
+            data: formattedCart,
+        });
+    } catch (error) {
+        res.status(500).json({
+            status: "error",
+            message: "Internal server error"
+        });
+    }
+};
+
+exports.updateCart = async (req, res) => {
+    try {
+        const userId = req.user._id;
+        const { product_id, quantity } = req.body;
+        if (!product_id) {
+            return res.status(400).json({
+                status: "error",
+                message: "Product ID are required"
+            });
+        };
+        const user = await UserModel.findById(userId).select("cart");
+        const productIndex = user.cart.findIndex(item => item.product_id.toString() === product_id);
+        if (productIndex > -1) {
+            if (!quantity) user.cart[productIndex].quantity += 1;
+            else if (quantity <= 0) user.cart.splice(productIndex, 1);
+            else user.cart[productIndex].quantity = quantity;
+        } else {
+            // Product does not exist in cart, add new item
+            user.cart.push({ product_id, quantity: quantity || 1 });
+        }
+        await user.save();
+        res.status(200).json({
+            status: "success",
+            message: "Cart updated successfully",
+            data: user.cart,
+        });
+    } catch (error) {
+        res.status(500).json({
+            status: "error",
+            message: error
+        });
+    }
+};
+
+exports.deleteCart = async (req, res) => {
+    try {
+        const userId = req.user._id;
+        const { id } = req.body;
+        if (!id) {
+            return res.status(400).json({
+                status: "error",
+                message: "Product ID are required"
+            });
+        }
+        const user = await UserModel.findById(userId).select("cart");
+        const productIndex = user.cart.findIndex(item => item.product_id.toString() === id);
+        if (productIndex > -1) {
+            user.cart.splice(productIndex, 1);
+            await user.save();
+            res.status(200).json({
+                status: "success",
+                message: "Product removed from cart",
+                data: user.cart,
+            });
+        }
+    } catch (error) {
+        res.status(500).json({
+            status: "error",
+            message: error
+        });
+    }
+};
+
+
+
 
