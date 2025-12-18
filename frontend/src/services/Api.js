@@ -24,3 +24,7 @@ export const updatePassword = (data, config) => Http.put("/profile/password", da
 export const addAddress = (data, config) => Http.post("/profile/addresses", data, config);
 export const updateAddress = (addressId, data, config) => Http.put(`/profile/addresses/${addressId}`, data, config);
 export const deleteAddress = (addressId, config) => Http.delete(`/profile/addresses/${addressId}`, config);
+
+export const getCart = (config) => Http.get("/cart", config);
+export const updateCart = (data, config) => Http.put("/cart", data, config);
+export const deleteCart = (id, config) => Http.delete(`/cart/${id}`, config);

@@ -1,9 +1,19 @@
-import { ADD_TO_CART, DELETE_CART, UPDATE_CART } from "../../shared/constants/action-type";
+import { ADD_TO_CART, DELETE_CART, UPDATE_CART, SET_CART } from "../../shared/constants/action-type";
 
-const initState = {
-    items: [],
+const getInitialState = () => {
+    try {
+        const savedCart = localStorage.getItem("cart");
+        if (savedCart) {
+            return JSON.parse(savedCart);
+        }
+    } catch (error) {
+        console.error("Error loading cart from localStorage:", error);
+    }
+    return { items: [] };
+};
 
-}
+const initState = getInitialState();
+
 
 const addToCart = (state, payload) => {
     const items = state.items;
@@ -38,12 +48,36 @@ const deleteCart = (state, payload) => {
     return {...state, items: newItems};
 }
 
+const setCart = (state, payload) => {
+    return {...state, items: payload};
+}
+
 
 export default (state=initState, action) => {
+    let newState;
     switch(action.type){
-        case ADD_TO_CART: return addToCart(state, action.payload);
-        case UPDATE_CART: return updateCart(state, action.payload);
-        case DELETE_CART: return deleteCart(state, action.payload);
-        default: return state;
+        case ADD_TO_CART: 
+            newState = addToCart(state, action.payload);
+            break;
+        case UPDATE_CART: 
+            newState = updateCart(state, action.payload);
+            break;
+        case DELETE_CART: 
+            newState = deleteCart(state, action.payload);
+            break;
+        case SET_CART: 
+            newState = setCart(state, action.payload);
+            break;
+        default: 
+            return state;
     }
+    
+    // Save cart to localStorage after state changes
+    try {
+        localStorage.setItem("cart", JSON.stringify(newState));
+    } catch (error) {
+        console.error("Error saving cart to localStorage:", error);
+    }
+    
+    return newState;
 }

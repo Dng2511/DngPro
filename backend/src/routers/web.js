@@ -42,7 +42,13 @@ router.get('/categories', categoryCtrl.index);
 router.get('/categories/:id', categoryCtrl.searchById);
 router.get('/categories/:id/products', categoryCtrl.catProducts);
 
+// Comment routes
+router.get('/products/:id/comments', productController.getComments);
+router.post('/products/:id/comments', checkLoggedIn(), productController.postComments);
 
+router.get('/cart', checkLoggedIn(), UserController.getCart);
+router.put('/cart', checkLoggedIn(), UserController.updateCart);
+router.delete('/cart/:id', checkLoggedIn(), UserController.deleteCart);
 
 
 module.exports = router;
