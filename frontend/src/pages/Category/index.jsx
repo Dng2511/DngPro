@@ -19,6 +19,7 @@ const Category = () => {
                 page: page,
             }
         }).then(({ data }) => {
+            console.log(data);
             setProductsCategory(data.data.docs);
             setPages(data.pages);
     });
@@ -29,7 +30,7 @@ const Category = () => {
             <div>
                 {/*	List Product	*/}
                 <div className="products">
-                    <h3>{category.name} (hiện có {productsCategory.length} sản phẩm)</h3>
+                    <h3>{category.title} (hiện có {productsCategory.length} sản phẩm)</h3>
                     <div className="product-list card-deck">
                         {
                             productsCategory.map((item) => (

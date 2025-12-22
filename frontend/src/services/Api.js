@@ -11,6 +11,9 @@ export const postCommentsProduct = (id, data, config) => Http.post(`/products/${
 export const getSearchProduct = (id, config) => Http.get(`/products/?name=${id}`, config);
 
 export const postOrder = (data, config) => Http.post("/orders", data, config);
+export const getPaymentUrl = (data, config) => Http.post("/orders/get-payment-url", data, config);
+export const getMyOrders = (config) => Http.get('/orders/my', config);
+export const getVnpayStatus = (txnRef, config) => Http.get(`/vnpay/status?txnRef=${encodeURIComponent(txnRef)}`, config);
 
 // Auth APIs
 export const postLogin = (data, role) => Http.post(`/login/${role}`, data);

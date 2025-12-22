@@ -3,7 +3,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { getImgProduct } from "../../shared/ultils";
 import { currencyType } from "../../shared/constants/currency-type";
 import { UPDATE_CART, DELETE_CART } from "../../shared/constants/action-type";
-import { getProfile, postOrder, deleteAddress } from "../../services/Api";
+import { getProfile, postOrder, deleteAddress, getPaymentUrl } from "../../services/Api";
 import AddAddress from "../../shared/components/Address/AddAddress";
 import EditAddress from "../../shared/components/Address/EditAddress";
 import { useNavigate } from "react-router-dom";
@@ -91,19 +91,58 @@ const Cart = () => {
 
         // submit
         else {
-            postOrder(orderInfo, {}).then(({ data }) => {
-                if (data.status == "success") {
-                    items.map((item) => {
-                        dispatch({
-                            type: DELETE_CART,
-                            payload: {
-                                _id: item._id,
-                            }
+            if (paymentMethod === 'installment') {
+                // send full order info to server so it can create a pending order and return payment url
+                const payload = {
+                    name: orderInfo.full_name || orderInfo.name,
+                    mail: orderInfo.email || orderInfo.mail,
+                    phone: orderInfo.phone,
+                    add: orderInfo.address.ward + " " + orderInfo.address.province + " " + orderInfo.address.detail,
+                    items,
+                    paymentMethod: 'vnpay'
+                };
+                getPaymentUrl(payload, {}).then(({ data }) => {
+                    if (data.status === "success") {
+                        // keep a local fallback pending order in case client needs it
+                        try {
+                            const pending = { ...payload };
+                            localStorage.setItem('pendingOrder', JSON.stringify(pending));
+                            localStorage.setItem('pendingPayment', 'vnpay');
+                        } catch (e) {
+                            console.warn('Could not save pending order', e);
+                        }
+                        console.log(data);
+                        navigate(data.url);
+                    } else {
+                        setFormError("Đặt hàng thất bại!");
+                    }
+                }).catch((err) => {
+                    setFormError("Lỗi khi kết nối đến cổng thanh toán");
+                });
+                return;
+            } else {
+                const payload = {
+                    name: orderInfo.full_name || orderInfo.name,
+                    mail: orderInfo.email || orderInfo.mail,
+                    phone: orderInfo.phone,
+                    add: orderInfo.address.ward + " " + orderInfo.address.province + " " + orderInfo.address.detail,
+                    items,
+                    paymentMethod: 'cod'
+                };
+                postOrder(payload, {}).then(({ data }) => {
+                    if (data.status == "success") {
+                        items.map((item) => {
+                            dispatch({
+                                type: DELETE_CART,
+                                payload: {
+                                    _id: item._id,
+                                }
+                            })
                         })
-                    })
-                    navigate('/Success');
-                } else setFormError("Đặt hàng thất bại!");
-            })
+                        navigate('/success');
+                    } else setFormError("Đặt hàng thất bại!");
+                })
+            }
         };
 
     }

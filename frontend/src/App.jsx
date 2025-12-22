@@ -14,10 +14,12 @@ import ProductDetails from "./pages/ProductDetails";
 import Search from "./pages/Search";
 import Cart from "./pages/Cart";
 import Success from "./pages/Success";
+import PaymentSuccess from "./pages/PaymentSuccess";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import NotFound from "./pages/NotFound";
 import Profile from "./pages/Profile";
+import Orders from "./pages/Orders";
 //Redux
 
 import { Provider } from "react-redux";
@@ -59,6 +61,8 @@ const App = () => {
                           <Route path="/search" element={<Search />} />
                           <Route path="/cart" element={<Cart />} />
                           <Route path="/success" element={<Success />} />
+                          <Route path="/payment-success" element={<PaymentSuccess />} />
+                          <Route path="/orders" element={<Orders />} />
                           <Route path="/profile" element={<Profile />} />
                           <Route path="*" element={<NotFound />} />
 

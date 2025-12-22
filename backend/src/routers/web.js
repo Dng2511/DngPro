@@ -12,6 +12,7 @@ const orderController = require('../apps/controllers/order');
 
 // Middlewares
 const checkLoggedIn = require('../apps/middlewares/checkLoggedIn');
+const verifyToken = require('../apps/middlewares/verifyToken');
 
 
 
@@ -37,13 +38,19 @@ router.delete('/profile/addresses/:addressId', checkLoggedIn(), UserController.d
 
 router.get('/products', productController.index);
 router.get('/products/:id', productController.show);
-router.post('/orders', orderController.order);
+
+router.post('/orders', verifyToken, orderController.order);
+router.post("/orders/get-payment-url", verifyToken,orderController.getPaymentUrl);
+// VNPAY return callback (use server-side verification)
+router.get('/vnpay/return', orderController.vnpayReturn);
+router.get('/vnpay/status', orderController.vnpayStatus);
+// User orders
+router.get('/orders/my', checkLoggedIn(), orderController.myOrders);
 
 router.get('/categories', categoryCtrl.index);
 router.get('/categories/:id', categoryCtrl.searchById);
 router.get('/categories/:id/products', categoryCtrl.catProducts);
 
-router.post('/create-payment', orderController.payment);
 
 // Comment routes
 router.get('/products/:id/comments', productController.getComments);
