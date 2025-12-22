@@ -16,6 +16,7 @@ const checkLoggedIn = require('../apps/middlewares/checkLoggedIn');
 
 
 
+
 router.get('/', (req, res) => {
     res.send("API is working");
 });
@@ -41,6 +42,8 @@ router.post('/orders', orderController.order);
 router.get('/categories', categoryCtrl.index);
 router.get('/categories/:id', categoryCtrl.searchById);
 router.get('/categories/:id/products', categoryCtrl.catProducts);
+
+router.post('/create-payment', orderController.payment);
 
 
 
