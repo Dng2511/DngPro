@@ -1,8 +1,8 @@
 const UserModel = require("../models/user");
-const ProductModel = require("../models/product");
 const bcrypt = require("bcrypt");
 
 const createToken = require("../../libs/createToken");
+const pagination = require("../../libs/pagination");
 
 
 
@@ -63,6 +63,14 @@ exports.login = async (req, res) => {
             });
         }
 
+        if (user.is_banned) {
+            return res.status(403).json({
+                status: "error",
+                code: "USER_BANNED",
+                message: "User is banned"
+            });
+        }
+
         const isMatch = await bcrypt.compare(password, user.password);
         if (!isMatch) {
             return res.status(401).json({
@@ -92,17 +100,60 @@ exports.login = async (req, res) => {
 
 exports.index = async (req, res) => {
     try {
-        const users = await UserModel.find()
-            .select("-password -cart") // không trả về mật khẩu và giỏ hàng
+        // Pagination support: ?page=1&limit=20
+        const page = Math.max(parseInt(req.query.page || "1"), 1);
+        const limit = Math.max(parseInt(req.query.limit || "20"), 1);
+        const skip = (page - 1) * limit;
+        const search = req.query.search || "";
+
+        const filter = {
+            role: "customer",
+        };
+
+        if (search) {
+            filter.$or = [
+                { phone: { $regex: search, $options: "i" } },
+                { name: { $regex: search, $options: "i" } },
+                { email: { $regex: search, $options: "i" } },
+            ];
+        }
+
+
+        const users = await UserModel.find(filter).select("-password -cart -addresses")
             .sort({ _id: -1 })
             .skip(skip)
             .limit(limit);
+
         res.status(200).json({
             status: "success",
-            data: { docs: users },
+            filter: {
+                page,
+                limit,
+                search,
+            },
+            data: {
+                docs: users,
+            },
+            pages: await pagination(UserModel, limit, page, filter),
         });
     } catch (error) {
-        res.status(500).json({ status: "error", message: "Internal server error" });
+        res.status(500).json({ status: "error", message: error.message });
+    }
+};
+
+// Admin: set ban status for a user
+exports.setBanStatus = async (req, res) => {
+    try {
+        const userId = req.params.id;
+        const { is_banned } = req.body;
+        if (typeof is_banned !== 'boolean') {
+            return res.status(400).json({ status: 'error', message: 'is_banned (boolean) is required' });
+        }
+        const user = await UserModel.findByIdAndUpdate(userId, { is_banned }, { new: true }).select('-password -cart');
+        if (!user) return res.status(404).json({ status: 'error', message: 'User not found' });
+        res.status(200).json({ status: 'success', message: 'User status updated', data: user });
+    } catch (error) {
+        res.status(500).json({ status: 'error', message: 'Internal server error' });
     }
 };
 

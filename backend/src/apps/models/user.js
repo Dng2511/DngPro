@@ -43,6 +43,11 @@ const userSchema = new mongoose.Schema({
     avatar: {
         type: String,
         default: null,
+    },
+    
+    is_banned: {
+        type: Boolean,
+        default: false,
     }
 }, { timestamps: true});
 const usersModel = mongoose.model("Users", userSchema, "users");

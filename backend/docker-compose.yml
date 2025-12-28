@@ -43,6 +43,8 @@ services:
     volumes:
       - .:/app
       - /app/node_modules
+      - ./uploads:/app/uploads 
+
     networks:
       - vp_shop_network
     command: npm start

@@ -122,10 +122,10 @@ const Cart = () => {
                 return;
             } else {
                 const payload = {
-                    name: orderInfo.full_name || orderInfo.name,
-                    mail: orderInfo.email || orderInfo.mail,
+                    name: orderInfo.name,
+                    mail: orderInfo.email,
                     phone: orderInfo.phone,
-                    add: orderInfo.address.ward + " " + orderInfo.address.province + " " + orderInfo.address.detail,
+                    add: orderInfo.add || orderInfo.address.ward + " " + orderInfo.address.province + " " + orderInfo.address.detail,
                     items,
                     paymentMethod: 'cod'
                 };
@@ -238,7 +238,6 @@ const Cart = () => {
                                         </div>
                                     ) : (
                                         <div>
-                                            <input className="form-control" placeholder="Địa chỉ nhà riêng hoặc cơ quan (bắt buộc)" value={profile.add || ""} onChange={onChangeInfo} name="add" />
                                             <div style={{ marginTop: 8 }}>
                                                 <button className="btn btn-sm btn-success" onClick={(e) => { e.preventDefault(); setShowAddAddress(true); }}>+ Thêm địa chỉ</button>
                                             </div>
@@ -270,7 +269,7 @@ const Cart = () => {
                                     <input onChange={(e) => onChangeInfo(e)} placeholder="Số điện thoại (bắt buộc)" type="text" name="phone" className="form-control" required />
                                 </div>
                                 <div id="customer-mail" className="col-lg-4 col-md-4 col-sm-12">
-                                    <input onChange={(e) => onChangeInfo(e)} placeholder="Email (bắt buộc)" type="email" name="mail" className="form-control" required />
+                                    <input onChange={(e) => onChangeInfo(e)} placeholder="Email (bắt buộc)" type="email" name="email" className="form-control" required />
                                 </div>
                                 <div id="customer-add" className="col-lg-12 col-md-12 col-sm-12">
                                     <input onChange={(e) => onChangeInfo(e)} placeholder="Địa chỉ nhà riêng hoặc cơ quan (bắt buộc)" type="text" name="add" className="form-control" required />
