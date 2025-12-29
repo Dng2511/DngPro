@@ -17,6 +17,8 @@ const Sidebar = () => {
         if (path === '/success' || path === '/payment-success') {
             getMyOrders().then(({ data }) => {
                 if (data.status === 'success') setOrdersCount((data.data || []).length);
+                console.log(data.data);
+                
             }).catch(() => setOrdersCount(null));
         }
     }, [location.pathname, isLoggedIn]);
@@ -33,7 +35,6 @@ const Sidebar = () => {
                         </div>
                         <div className="p-3" style={{ background: '#fff', borderRadius: 6, boxShadow: '0 1px 3px rgba(0,0,0,0.05)', cursor: isLoggedIn ? 'pointer' : 'default' }} onClick={() => isLoggedIn && navigate('/orders')}>
                             <div style={{ fontWeight: 500, fontSize: 18 }}>Đơn hàng</div>
-                            <div style={{ color: '#666', marginTop: 6 }}>{ordersCount === null ? (isLoggedIn ? 'Đang tải...' : 'Đăng nhập để xem') : `${ordersCount} đơn`}</div>
                         </div>
                     </div>
                 </div>

@@ -4,6 +4,7 @@ const PendingOrderModel = require("../models/pendingOrder");
 const { VNPay, ignoreLogger } = require('vnpay');
 const { dateFormat } = require("vnpay/utils");
 const crypto = require('crypto');
+const pagination = require("../../libs/pagination");
 
 
 exports.order = async (req, res) => {
@@ -27,7 +28,6 @@ exports.order = async (req, res) => {
         const method = paymentMethod === 'vnpay' ? 1 : 0;
 
         const userId = req.user && (req.user._id || req.user.id) ? (req.user._id || req.user.id) : null;
-
         const newOrder = {
             user: userId,
             totalPrice: OrderItems.reduce((total, item) => total + (item.price || 0) * item.qty, 0),
@@ -272,6 +272,33 @@ exports.vnpayStatus = async (req, res) => {
         const pending = await PendingOrderModel.findOne({ txnRef });
         if (!pending) return res.status(404).json({ status: 'error', message: 'not_found' });
         return res.status(200).json({ status: 'success', data: { txnRef: pending.txnRef, status: pending.status, orderId: pending.order || null } });
+    } catch (err) {
+        return res.status(500).json({ status: 'error', message: err.message });
+    }
+};
+
+// Get all orders (admin)
+exports.allOrders = async (req, res) => {
+    try {
+        const page = Math.max(parseInt(req.query.page || "1"), 1);
+        const limit = Math.max(parseInt(req.query.limit || "20"), 1);
+        const skip = (page - 1) * limit;
+
+        const orders = await OrderModel.find()
+            .sort({ createdAt: -1 })
+            .populate('items.prd_id', 'name thumbnail')
+            .skip(skip)
+            .limit(limit);
+        return res.status(200).json({
+            status: 'success',
+            filter: { 
+                page, 
+                limit 
+            },
+            data: orders,
+            pages: await pagination(OrderModel, limit, page, {}),
+
+        });
     } catch (err) {
         return res.status(500).json({ status: 'error', message: err.message });
     }

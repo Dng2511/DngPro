@@ -9,6 +9,7 @@ import RequireAuth from './shared/components/RequireAuth';
 import { AuthProvider } from './shared/context/AuthContext';
 import Products from './pages/Products';
 import Users from './pages/Users';
+import Orders from './pages/Orders';
 
 const App = () => {
   return (
@@ -22,6 +23,7 @@ const App = () => {
             <Route path="categories" element={<Categories />} />
             <Route path="products" element={<Products />} />
             <Route path="customers" element={<Users />} />
+            <Route path="orders" element={<Orders />} />
           </Route>
 
         </Routes>

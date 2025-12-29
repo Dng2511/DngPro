@@ -122,10 +122,10 @@ const Cart = () => {
                 return;
             } else {
                 const payload = {
-                    name: orderInfo.name,
+                    name: orderInfo.full_name,
                     mail: orderInfo.email,
                     phone: orderInfo.phone,
-                    add: orderInfo.add || orderInfo.address.ward + " " + orderInfo.address.province + " " + orderInfo.address.detail,
+                    add: orderInfo.add || orderInfo.address.detail + " " + orderInfo.address.ward + " " + orderInfo.address.province,
                     items,
                     paymentMethod: 'cod'
                 };

@@ -29,11 +29,11 @@ const Orders = () => {
     if (error) return <div className="message-error">{error}</div>;
 
     return (
-        <div id="my-orders">
+        <div className="orders-page">
             <h3>Đơn hàng của tôi</h3>
             {orders.length === 0 && <div>Chưa có đơn hàng nào</div>}
             {orders.map(order => (
-                <div key={order._id} className="order-card">
+                <div key={order._id} className="orders-card">
                     <div className="order-header">
                         <div className="order-meta">
                             <div className="order-id"><strong>Đơn:</strong> {order._id}</div>
