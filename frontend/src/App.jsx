@@ -6,7 +6,7 @@ import Footer from "./shared/components/Layout/Footer";
 import Header from "./shared/components/Layout/Header";
 import Menu from "./shared/components/Layout/Menu";
 import Sidebar from "./shared/components/Layout/Sidebar";
-
+import './App.css';
 // Import Pages
 import Home from "./pages/Home";
 import Category from "./pages/Category";
@@ -20,6 +20,9 @@ import Register from "./pages/Register";
 import NotFound from "./pages/NotFound";
 import Profile from "./pages/Profile";
 import Orders from "./pages/Orders";
+
+import SnowFall from "./shared/components/SnowFall";
+import Reindeer from "./shared/components/Reindeer";
 //Redux
 
 import { Provider } from "react-redux";
@@ -29,6 +32,8 @@ const App = () => {
 
   return (
     <Provider store={store}>
+      <SnowFall />
+      <Reindeer />
       <BrowserRouter>
         <Routes>
           {/* Full page routes */}
