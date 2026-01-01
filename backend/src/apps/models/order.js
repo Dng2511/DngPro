@@ -48,6 +48,10 @@ const orderSchema = new mongoose.Schema({
     items: {
         type: [itemSchema],
         required: true,
+    },
+    status: {
+        type: Number,
+        required: true,
     }
 }, { timestamps: true })
 

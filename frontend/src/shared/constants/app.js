@@ -1,2 +1,2 @@
-export const BASE_API = "http://localhost:8000";
-export const BASE_URL = "http://localhost:8000/images";
+export const BASE_API = "https://dngpro.xyz/api";
+export const BASE_URL = "https://dngpro.xyz/api/images";

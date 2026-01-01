@@ -13,12 +13,20 @@ const Orders = () => {
     const [selectedOrder, setSelectedOrder] = React.useState(null);
     const [total, setTotal] = React.useState(0);
 
+    const STATUS_OPTIONS = [
+        { value: 0, label: "Chờ xác nhận", color: "default" },
+        { value: 1, label: "Đang chuẩn bị hàng", color: "processing" },
+        { value: 2, label: "Đang giao hàng", color: "warning" },
+        { value: 3, label: "Thành công", color: "success" },
+        { value: 4, label: "Hủy đơn", color: "error" },
+    ];
+
 
     React.useEffect(() => {
         setLoading(true);
         getOrders({ params: { page: page, limit: 10 } }).then(({ data }) => {
             if (data.status === 'success') {
-                setOrders(data.data || []); 
+                setOrders(data.data || []);
                 setTotal(data.pages.totalRows || 0);
             } else {
                 setError('Không thể lấy danh sách đơn hàng');
@@ -38,8 +46,24 @@ const Orders = () => {
 
     const handleView = (order) => {
         setSelectedOrder(order);
-        
+
         setOpenDetail(true);
+    };
+
+    const handleChangeStatus = async (id, newStatus) => {
+        try {
+            await updateOrderStatus(id, { status: newStatus });
+
+            setOrders(prev =>
+                prev.map(order =>
+                    order._id === id
+                        ? { ...order, status: newStatus }
+                        : order
+                )
+            );
+        } catch (error) {
+            console.error(error);
+        }
     };
 
     const columns = [
@@ -92,6 +116,35 @@ const Orders = () => {
                     <Tag color="green">COD</Tag>
                 ),
         },
+        {
+            title: "Trạng thái",
+            dataIndex: "status",
+            key: "status",
+            render: (status, record) => (
+                <Select
+                    value={status}
+                    style={{ width: 180 }}
+                    onChange={(value) => handleChangeStatus(record._id, value)}
+                    options={STATUS_OPTIONS}
+                />
+            )
+        }, ,
+        {
+            title: "Trạng thái",
+            dataIndex: "status",
+            key: "status",
+        },
+        {
+            title: "Hành động",
+            width: 160,
+            render: (_, record) => (
+                <Button
+                    type="text"
+                    icon={<EditOutlined />}
+                    onClick={() => handleView(record)}
+                />
+            )
+        }
     ];
 
     return (
@@ -107,9 +160,6 @@ const Orders = () => {
                     total: total,
                 }}
                 onChange={handleChangePage}
-                onRow={(record) => ({
-                    onClick: () => handleView(record),
-                })}
             />
             <OrderDetail
                 open={openDetail}

@@ -74,6 +74,10 @@ const Cart = () => {
         // attach selected address
         if (selectedAddressId && profile.addresses) {
             orderInfo.address = profile.addresses.find((a) => a._id === selectedAddressId);
+        } 
+        if ((!selectedAddressId || !profile.addresses) && !orderInfo.add){
+            setFormError("Chưa có địa chỉ nhận hàng");
+            return;
         }
 
         if (!emailRegex.test(orderInfo.email || "")) {
@@ -97,7 +101,7 @@ const Cart = () => {
                     name: orderInfo.full_name || orderInfo.name,
                     mail: orderInfo.email || orderInfo.mail,
                     phone: orderInfo.phone,
-                    add: orderInfo.address.ward + " " + orderInfo.address.province + " " + orderInfo.address.detail,
+                    add: orderInfo.add || orderInfo.address.ward + " " + orderInfo.address.province + " " + orderInfo.address.detail,
                     items,
                     paymentMethod: 'vnpay'
                 };
@@ -122,7 +126,7 @@ const Cart = () => {
                 return;
             } else {
                 const payload = {
-                    name: orderInfo.full_name,
+                    name: orderInfo.full_name || orderInfo.name,
                     mail: orderInfo.email,
                     phone: orderInfo.phone,
                     add: orderInfo.add || orderInfo.address.detail + " " + orderInfo.address.ward + " " + orderInfo.address.province,

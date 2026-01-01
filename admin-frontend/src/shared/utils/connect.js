@@ -1,3 +1,3 @@
-export const apiUrl = "http://localhost:8000"
+export const apiUrl = "https://dngpro.xyz/api"
 
-export const imageUrl = "http://localhost:8000/images/products"
+export const imageUrl = "https://dngpro.xyz/api/images/products"

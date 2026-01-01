@@ -110,7 +110,7 @@ exports.getPaymentUrl = async (req, res) => {
             paymentMethod: 'vnpay'
         });
 
-        const returnUrl = 'http://localhost:8000/vnpay/return';
+        const returnUrl = 'http://dngpro.xyz/admin/vnpay/return';
 
         const paymentUrl = await vnpay.buildPaymentUrl({
             vnp_Amount: amount,
@@ -121,7 +121,7 @@ exports.getPaymentUrl = async (req, res) => {
             vnp_ReturnUrl: returnUrl,
             vnp_Locale: 'vn',
             vnp_CreateDate: dateFormat(new Date()),
-            vnp_ExpireDate: dateFormat(tomorrow),
+            vnp_ExpireDate: dateFormat(new Date() + 15 * 60 * 1000), // add 15 minutes
         });
         res.status(200).json({
             status: "success",
@@ -187,6 +187,8 @@ exports.vnpayReturn = async (req, res) => {
                 }
             } catch (e) {
                 // ignore candidate failure
+                console.log(e);
+                
             }
         }
 
@@ -303,3 +305,35 @@ exports.allOrders = async (req, res) => {
         return res.status(500).json({ status: 'error', message: err.message });
     }
 };
+
+exports.updateStatus = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { status } = req.body;
+
+        if (status === undefined) {
+            return res.status(400).json({
+                status: "error",
+                message: "Thiếu trạng thái đơn hàng"
+            });
+        }
+
+        const order = await OrderModel.findByIdAndUpdate(
+            id,
+            { status },
+            { new: true }
+        );
+
+        if (!order) {
+            return res.status(404).json({
+                status: "error",
+                message: "Không tìm thấy đơn hàng"
+            });
+        }
+
+        return res.sendStatus(204);
+        
+    } catch (err) {
+        return res.status(500).json({ status: 'error', message: err.message });
+    }
+}
