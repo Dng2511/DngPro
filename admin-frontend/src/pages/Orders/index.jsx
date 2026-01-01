@@ -1,7 +1,8 @@
 import React from "react";
 import OrderDetail from "./OrderDetail";
-import { Table, Tag } from "antd";
-import { getOrders } from "../../shared/api/api";
+import { Table, Tag, Select, Button } from "antd";
+import { getOrders, updateOrderStatus } from "../../shared/api/api";
+import { EditOutlined } from "@ant-design/icons";
 
 
 const Orders = () => {
@@ -68,10 +69,10 @@ const Orders = () => {
 
     const columns = [
         {
-            title: "Mã đơn",
-            dataIndex: "_id",
-            key: "_id",
-            render: (id) => id.slice(-6).toUpperCase(),
+            title: "ID",
+            width: 60,
+            render: (_, __, index) =>
+                (page - 1) * 10 + index + 1,
         },
         {
             title: "Khách hàng",
@@ -92,7 +93,6 @@ const Orders = () => {
             title: "Địa chỉ",
             dataIndex: "address",
             key: "address",
-            ellipsis: true,
         },
         {
             title: "Tổng tiền",
@@ -120,6 +120,7 @@ const Orders = () => {
             title: "Trạng thái",
             dataIndex: "status",
             key: "status",
+            width: 200,
             render: (status, record) => (
                 <Select
                     value={status}
@@ -128,15 +129,9 @@ const Orders = () => {
                     options={STATUS_OPTIONS}
                 />
             )
-        }, ,
-        {
-            title: "Trạng thái",
-            dataIndex: "status",
-            key: "status",
         },
         {
             title: "Hành động",
-            width: 160,
             render: (_, record) => (
                 <Button
                     type="text"

@@ -317,12 +317,16 @@ exports.updateStatus = async (req, res) => {
                 message: "Thiếu trạng thái đơn hàng"
             });
         }
-
+        console.log(id);
+        
+        
         const order = await OrderModel.findByIdAndUpdate(
             id,
             { status },
             { new: true }
         );
+
+        console.log(order);
 
         if (!order) {
             return res.status(404).json({
