@@ -10,6 +10,14 @@ const Orders = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
 
+    const STATUS_OPTIONS = [
+        { value: 0, label: "Chờ xác nhận", color: "default" },
+        { value: 1, label: "Đang chuẩn bị hàng", color: "processing" },
+        { value: 2, label: "Đang giao hàng", color: "warning" },
+        { value: 3, label: "Thành công", color: "success" },
+        { value: 4, label: "Hủy đơn", color: "error" },
+    ];
+
     useEffect(() => {
         setLoading(true);
         getMyOrders().then(({ data }) => {
@@ -43,7 +51,7 @@ const Orders = () => {
                         <div className="order-summary">
                             <div className="order-total">{currencyType(order.totalPrice)}</div>
                             <div style={{ fontSize: 12, color: '#666' }}>{order.method === 1 ? 'Thanh toán online' : 'Thanh toán khi nhận hàng'}</div>
-                            <div style={{ fontSize: 13, marginTop: 6 }}>{order.status || '—'}</div>
+                            <div style={{ fontSize: 13, marginTop: 6 }}>{STATUS_OPTIONS[order.status].label || '—'}</div>
                         </div>
                     </div>
 

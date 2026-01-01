@@ -18,7 +18,7 @@ export const getUsers = (config) => Http.get("/users", config);
 export const setBanStatus = (id, data) => Http.put(`/users/${id}/ban`, data);
 
 export const getOrders = (config) => Http.get("/orders", config);
-export const updateOrderStatus = (id, data) => Http.put(`/orders/${id}`, data)
+export const updateOrderStatus = (id, data) => Http.put(`/orders/${id}`, data);
 
 export const getProfile = () => Http.get("/profile");
 
