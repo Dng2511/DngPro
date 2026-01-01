@@ -56,7 +56,7 @@ router.post('/orders', verifyToken, orderController.order);
 router.post("/orders/get-payment-url", verifyToken,orderController.getPaymentUrl);
 router.get('/orders/my', checkLoggedIn(), orderController.myOrders);
 router.get('/orders', checkLoggedIn('admin'), orderController.allOrders);
-router.put('orders/:id', orderController.updateStatus);
+router.put('orders/:id', checkLoggedIn('admin'), orderController.updateStatus);
 // VNPAY return callback (use server-side verification)
 router.get('/vnpay/return', orderController.vnpayReturn);
 router.get('/vnpay/status', orderController.vnpayStatus);
