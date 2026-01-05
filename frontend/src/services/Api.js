@@ -30,4 +30,4 @@ export const deleteAddress = (addressId, config) => Http.delete(`/profile/addres
 
 export const getCart = (config) => Http.get("/cart", config);
 export const updateCart = (data, config) => Http.put("/cart", data, config);
-export const deleteCart = (id, config) => Http.delete(`/cart/${id}`, config);
+export const deleteCart = (data, config) => Http.delete(`/cart/${data.id}`, data, config);

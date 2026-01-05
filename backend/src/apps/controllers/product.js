@@ -6,11 +6,23 @@ exports.index = async (req, res) => {
         const query = {};
         if (req.query.is_stock) query.is_stock = req.query.is_stock;
         if (req.query.featured) query.featured = req.query.featured;
-        if (req.query.name) query.$text = { $search: req.query.name };
+
         const page = parseInt(req.query.page) || 1;
         const limit = parseInt(req.query.limit) || 12;
         const skip = limit * (page - 1);
-        const products = await ProductModel.find(query).sort({ _id: -1 }).skip(skip).limit(limit);
+        let products;
+
+        if (req.query.name) {
+            query.$text = { $search: req.query.name };
+            products = await ProductModel.find(query, {
+                score: { $meta: "textScore" }
+            })
+                .sort({ score: { $meta: "textScore" } })
+                .limit(limit)
+                .skip(skip);
+        } else {
+            products = await ProductModel.find(query).sort({ _id: -1 }).skip(skip).limit(limit);
+        }
         //const products = await ProductModel.find(query);
         res.status(200).json({
             status: "success",
@@ -53,7 +65,7 @@ exports.show = async (req, res) => {
 exports.create = async (req, res) => {
     try {
         const { name, price, description, status, cat_id, featured, is_stock, accessories, warranty, promotion } = req.body;
-        const thumbnail = req.file ? req.file.filename : null; 
+        const thumbnail = req.file ? req.file.filename : null;
         console.log(name, price, description, status, cat_id, featured, is_stock, accessories, warranty, promotion, thumbnail);
         const newProduct = new ProductModel({
             name,
@@ -86,7 +98,7 @@ exports.update = async (req, res) => {
     try {
         const { id } = req.params;
 
-        const { name, price, description, status, cat_id, featured, is_stock, accessories, warranty, promotion} = req.body;
+        const { name, price, description, status, cat_id, featured, is_stock, accessories, warranty, promotion } = req.body;
 
         const updateData = {
             name,
@@ -143,7 +155,7 @@ exports.delete = async (req, res) => {
             status: "error",
             message: error.message,
         });
-    } 
+    }
 };
 
 

@@ -87,9 +87,9 @@ exports.getPaymentUrl = async (req, res) => {
             }
         });
 
-        const tomorrow = new Date();
-        const txnRef = tomorrow.getTime().toString();
-        tomorrow.setDate(tomorrow.getDate() + 1);
+        const expiredDate = new Date();
+        const txnRef = expiredDate.getTime().toString();
+        expiredDate.setTime(expiredDate.getTime() + 435 * 60 * 1000);
 
         const method = paymentMethod === 'vnpay' ? 1 : 0;
         const userId = req.user ? req.user._id : null;
@@ -121,7 +121,7 @@ exports.getPaymentUrl = async (req, res) => {
             vnp_ReturnUrl: returnUrl,
             vnp_Locale: 'vn',
             vnp_CreateDate: dateFormat(new Date()),
-            vnp_ExpireDate: dateFormat(new Date() + 15 * 60 * 1000), // add 15 minutes
+            vnp_ExpireDate: dateFormat(expiredDate), 
         });
         res.status(200).json({
             status: "success",
@@ -325,8 +325,6 @@ exports.updateStatus = async (req, res) => {
             { status },
             { new: true }
         );
-
-        console.log(order);
 
         if (!order) {
             return res.status(404).json({

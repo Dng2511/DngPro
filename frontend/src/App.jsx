@@ -6,6 +6,7 @@ import Footer from "./shared/components/Layout/Footer";
 import Header from "./shared/components/Layout/Header";
 import Menu from "./shared/components/Layout/Menu";
 import Sidebar from "./shared/components/Layout/Sidebar";
+import VideoModal from "./shared/components/VideoModal";
 
 // Import Pages
 import Home from "./pages/Home";
@@ -26,6 +27,9 @@ import { Provider } from "react-redux";
 import store from "./redux-setup/store";
 
 const App = () => {
+
+  const [openVideo, setOpenVideo] = React.useState(false);
+
 
   return (
     <Provider store={store}>
@@ -69,7 +73,8 @@ const App = () => {
 
                         </Routes>
                       </div>
-                      <Sidebar />
+                      <Sidebar setOpenVideo={setOpenVideo}/>
+                      <VideoModal open={openVideo} onClose={() => setOpenVideo(false)} />
                     </div>
                   </div>
                 </div>
