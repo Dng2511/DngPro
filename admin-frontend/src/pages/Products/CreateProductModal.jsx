@@ -203,9 +203,14 @@ const CreateProductModal = ({ visible, onCancel, data }) => {
 
             <Upload
               beforeUpload={(file) => {
-                setFile(file);
-                setPreview(URL.createObjectURL(file));
-                return false;
+                if (file.type.startsWith("image/")) {
+                  setFile(file);
+                  setPreview(URL.createObjectURL(file));
+                  return false;
+                } else {
+                  alert("Vui lòng chọn file ảnh");
+                  return false;
+                }
               }}
               showUploadList={false}
               accept="image/*"

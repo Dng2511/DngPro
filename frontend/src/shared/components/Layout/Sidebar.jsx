@@ -5,7 +5,7 @@ import { useAuth } from "../../../hooks/useAuth";
 import { useEffect, useState } from "react";
 import { getMyOrders } from "../../../services/Api";
 
-const Sidebar = () => {
+const Sidebar = ({setOpenVideo}) => {
     const navigate = useNavigate();
     const items = useSelector(({ cart }) => cart.items || []);
     const { isLoggedIn } = useAuth();
@@ -17,9 +17,13 @@ const Sidebar = () => {
         if (path === '/success' || path === '/payment-success') {
             getMyOrders().then(({ data }) => {
                 if (data.status === 'success') setOrdersCount((data.data || []).length);
+                console.log(data.data);
+                
             }).catch(() => setOrdersCount(null));
         }
     }, [location.pathname, isLoggedIn]);
+
+
 
     return (
         <>
@@ -31,32 +35,25 @@ const Sidebar = () => {
                             <div style={{ fontWeight: 500, fontSize: 18 }}>Giỏ hàng</div>
                             <div style={{ color: '#666', marginTop: 6 }}>{items.length} sản phẩm</div>
                         </div>
-                        <div className="p-3" style={{ background: '#fff', borderRadius: 6, boxShadow: '0 1px 3px rgba(0,0,0,0.05)', cursor: isLoggedIn ? 'pointer' : 'default' }} onClick={() => isLoggedIn && navigate('/orders')}>
+                        <div className="p-3" style={{ background: '#fff', borderRadius: 6, boxShadow: '0 1px 3px rgba(0,0,0,0.05)', cursor:  'pointer' }} onClick={() => navigate('/orders')}>
                             <div style={{ fontWeight: 500, fontSize: 18 }}>Đơn hàng</div>
-                            <div style={{ color: '#666', marginTop: 6 }}>{ordersCount === null ? (isLoggedIn ? 'Đang tải...' : 'Đăng nhập để xem') : `${ordersCount} đơn`}</div>
                         </div>
                     </div>
                 </div>
 
+                <br />
+
                 <div id="banner">
-                    <div className="banner-item">
-                        <a href="#"><img className="img-fluid" src="images/banner-1.png" /></a>
+                    <div className="banner-item" style={{cursor: 'pointer'}}>
+                        <a onClick={() => setOpenVideo(true)}><img className="img-fluid" src="images/banner-1.jpg" /></a>
                     </div>
-                    <div className="banner-item">
-                        <a href="#"><img className="img-fluid" src="images/banner-2.png" /></a>
+                    <div className="banner-item" style={{cursor: 'pointer'}}>
+                        <a onClick={() => setOpenVideo(true)}><img className="img-fluid" src="images/banner-2.png" /></a>
                     </div>
-                    <div className="banner-item">
-                        <a href="#"><img className="img-fluid" src="images/banner-3.png" /></a>
+                    <div className="banner-item" style={{cursor: 'pointer'}}>
+                        <a onClick={() => setOpenVideo(true)}><img className="img-fluid" src="images/banner-3.png" /></a>
                     </div>
-                    <div className="banner-item">
-                        <a href="#"><img className="img-fluid" src="images/banner-4.png" /></a>
-                    </div>
-                    <div className="banner-item">
-                        <a href="#"><img className="img-fluid" src="images/banner-5.png" /></a>
-                    </div>
-                    <div className="banner-item">
-                        <a href="#"><img className="img-fluid" src="images/banner-6.png" /></a>
-                    </div>
+                    
                 </div>
             </div>
         </>

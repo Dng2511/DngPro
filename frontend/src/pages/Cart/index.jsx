@@ -3,7 +3,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { getImgProduct } from "../../shared/ultils";
 import { currencyType } from "../../shared/constants/currency-type";
 import { UPDATE_CART, DELETE_CART } from "../../shared/constants/action-type";
-import { getProfile, postOrder, deleteAddress, getPaymentUrl } from "../../services/Api";
+import { getProfile, postOrder, deleteAddress, getPaymentUrl, updateCart } from "../../services/Api";
 import AddAddress from "../../shared/components/Address/AddAddress";
 import EditAddress from "../../shared/components/Address/EditAddress";
 import { useNavigate } from "react-router-dom";
@@ -41,9 +41,10 @@ const Cart = () => {
         const { name, value } = e.target;
         setProfile({ ...profile, [name]: value });
     };
-    const updateCart = (id, e) => {
+    const handelUpdateCart = async (id, e) => {
         const qty = parseInt(e.target.value);
-        if (qty <= 0) deleteCart(e, id)
+        if (isLoggedIn) await updateCart({product_id: id, quantity: qty});
+        if (qty <= 0) handleDeleteCart(e, id)
         dispatch({
             type: UPDATE_CART,
             payload: {
@@ -53,8 +54,10 @@ const Cart = () => {
         })
 
     }
-    const deleteCart = (e, id) => {
+    const handleDeleteCart = async (e, id) => {
         e.preventDefault();
+        console.log("Delete cart item", id);
+        if (isLoggedIn) await updateCart({product_id: id, quantity: -1});
         dispatch({
             type: DELETE_CART,
             payload: {
@@ -74,6 +77,10 @@ const Cart = () => {
         // attach selected address
         if (selectedAddressId && profile.addresses) {
             orderInfo.address = profile.addresses.find((a) => a._id === selectedAddressId);
+        } 
+        if ((!selectedAddressId || !profile.addresses) && !orderInfo.add){
+            setFormError("Chưa có địa chỉ nhận hàng");
+            return;
         }
 
         if (!emailRegex.test(orderInfo.email || "")) {
@@ -97,7 +104,7 @@ const Cart = () => {
                     name: orderInfo.full_name || orderInfo.name,
                     mail: orderInfo.email || orderInfo.mail,
                     phone: orderInfo.phone,
-                    add: orderInfo.address.ward + " " + orderInfo.address.province + " " + orderInfo.address.detail,
+                    add: orderInfo.add || orderInfo.address.ward + " " + orderInfo.address.province + " " + orderInfo.address.detail,
                     items,
                     paymentMethod: 'vnpay'
                 };
@@ -122,16 +129,17 @@ const Cart = () => {
                 return;
             } else {
                 const payload = {
-                    name: orderInfo.name,
+                    name: orderInfo.full_name || orderInfo.name,
                     mail: orderInfo.email,
                     phone: orderInfo.phone,
-                    add: orderInfo.add || orderInfo.address.ward + " " + orderInfo.address.province + " " + orderInfo.address.detail,
+                    add: orderInfo.add || orderInfo.address.detail + " " + orderInfo.address.ward + " " + orderInfo.address.province,
                     items,
                     paymentMethod: 'cod'
                 };
                 postOrder(payload, {}).then(({ data }) => {
                     if (data.status == "success") {
-                        items.map((item) => {
+                        items.map(async (item) => {
+                            if (isLoggedIn) await updateCart({product_id: item._id, quantity: -1});
                             dispatch({
                                 type: DELETE_CART,
                                 payload: {
@@ -189,9 +197,9 @@ const Cart = () => {
                                     <h4>{item.name}</h4>
                                 </div>
                                 <div className="cart-quantity col-lg-2 col-md-2 col-sm-12">
-                                    <input type="number" id="quantity" className="form-control form-blue quantity" onChange={(e) => updateCart(item._id, e)} value={item.qty}></input>
+                                    <input type="number" id="quantity" className="form-control form-blue quantity" onChange={(e) => handelUpdateCart(item._id, e)} value={item.qty}></input>
                                 </div>
-                                <div className="cart-price col-lg-3 col-md-3 col-sm-12"><b>{currencyType(item.qty * item.price)}</b><a onClick={(e) => deleteCart(e, item._id)} href="#">Xóa</a></div>
+                                <div className="cart-price col-lg-3 col-md-3 col-sm-12"><b>{currencyType(item.qty * item.price)}</b><a onClick={(e) => handleDeleteCart(e, item._id)} href="#">Xóa</a></div>
                             </div>
                         ))}
                     </div>

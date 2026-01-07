@@ -8,7 +8,6 @@ export const createCategory = (data) => Http.post("/categories", data);
 export const updateCategory = (id, data) => Http.put(`/categories/${id}`, data);
 export const deleteCategory = (id) => Http.delete(`/categories/${id}`);
 
-
 export const getProducts = (config) => Http.get("/products", config);
 export const getProductByCategory = (id) => Http.get(`/categories/${id}`);
 export const createProduct = (data) => Http.post("/products", data);
@@ -17,6 +16,9 @@ export const deleteProduct = (id) => Http.delete(`/products/${id}`);
 
 export const getUsers = (config) => Http.get("/users", config);
 export const setBanStatus = (id, data) => Http.put(`/users/${id}/ban`, data);
+
+export const getOrders = (config) => Http.get("/orders", config);
+export const updateOrderStatus = (id, data) => Http.put(`/orders/${id}`, data);
 
 export const getProfile = () => Http.get("/profile");
 

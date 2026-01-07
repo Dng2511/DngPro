@@ -4,6 +4,7 @@ const PendingOrderModel = require("../models/pendingOrder");
 const { VNPay, ignoreLogger } = require('vnpay');
 const { dateFormat } = require("vnpay/utils");
 const crypto = require('crypto');
+const pagination = require("../../libs/pagination");
 
 
 exports.order = async (req, res) => {
@@ -27,7 +28,6 @@ exports.order = async (req, res) => {
         const method = paymentMethod === 'vnpay' ? 1 : 0;
 
         const userId = req.user && (req.user._id || req.user.id) ? (req.user._id || req.user.id) : null;
-
         const newOrder = {
             user: userId,
             totalPrice: OrderItems.reduce((total, item) => total + (item.price || 0) * item.qty, 0),
@@ -87,9 +87,9 @@ exports.getPaymentUrl = async (req, res) => {
             }
         });
 
-        const tomorrow = new Date();
-        const txnRef = tomorrow.getTime().toString();
-        tomorrow.setDate(tomorrow.getDate() + 1);
+        const expiredDate = new Date();
+        const txnRef = expiredDate.getTime().toString();
+        expiredDate.setTime(expiredDate.getTime() + 435 * 60 * 1000);
 
         const method = paymentMethod === 'vnpay' ? 1 : 0;
         const userId = req.user ? req.user._id : null;
@@ -110,7 +110,7 @@ exports.getPaymentUrl = async (req, res) => {
             paymentMethod: 'vnpay'
         });
 
-        const returnUrl = 'http://localhost:8000/vnpay/return';
+        const returnUrl = 'http://dngpro.xyz/admin/vnpay/return';
 
         const paymentUrl = await vnpay.buildPaymentUrl({
             vnp_Amount: amount,
@@ -121,7 +121,7 @@ exports.getPaymentUrl = async (req, res) => {
             vnp_ReturnUrl: returnUrl,
             vnp_Locale: 'vn',
             vnp_CreateDate: dateFormat(new Date()),
-            vnp_ExpireDate: dateFormat(tomorrow),
+            vnp_ExpireDate: dateFormat(expiredDate), 
         });
         res.status(200).json({
             status: "success",
@@ -187,6 +187,8 @@ exports.vnpayReturn = async (req, res) => {
                 }
             } catch (e) {
                 // ignore candidate failure
+                console.log(e);
+                
             }
         }
 
@@ -276,3 +278,64 @@ exports.vnpayStatus = async (req, res) => {
         return res.status(500).json({ status: 'error', message: err.message });
     }
 };
+
+// Get all orders (admin)
+exports.allOrders = async (req, res) => {
+    try {
+        const page = Math.max(parseInt(req.query.page || "1"), 1);
+        const limit = Math.max(parseInt(req.query.limit || "20"), 1);
+        const skip = (page - 1) * limit;
+
+        const orders = await OrderModel.find()
+            .sort({ createdAt: -1 })
+            .populate('items.prd_id', 'name thumbnail')
+            .skip(skip)
+            .limit(limit);
+        return res.status(200).json({
+            status: 'success',
+            filter: { 
+                page, 
+                limit 
+            },
+            data: orders,
+            pages: await pagination(OrderModel, limit, page, {}),
+
+        });
+    } catch (err) {
+        return res.status(500).json({ status: 'error', message: err.message });
+    }
+};
+
+exports.updateStatus = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { status } = req.body;
+
+        if (status === undefined) {
+            return res.status(400).json({
+                status: "error",
+                message: "Thiếu trạng thái đơn hàng"
+            });
+        }
+        console.log(id);
+        
+        
+        const order = await OrderModel.findByIdAndUpdate(
+            id,
+            { status },
+            { new: true }
+        );
+
+        if (!order) {
+            return res.status(404).json({
+                status: "error",
+                message: "Không tìm thấy đơn hàng"
+            });
+        }
+
+        return res.sendStatus(204);
+        
+    } catch (err) {
+        return res.status(500).json({ status: 'error', message: err.message });
+    }
+}

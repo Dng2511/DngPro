@@ -70,6 +70,11 @@ const AdminLayout = () => {
               icon: <CalendarOutlined />,
               label: <Link to="/customers">Customers</Link>,
             },
+            {
+              key: '5',
+              icon: <CalendarOutlined />,
+              label: <Link to="/orders">Orders</Link>,
+            },
           ]}
         />
 
