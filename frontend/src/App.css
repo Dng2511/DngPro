@@ -36,3 +36,50 @@
     transform: rotate(360deg);
   }
 }
+/* Thêm hiệu ứng hình nền cây thông */
+body::before {
+  content: "";
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+
+  background-image: url('./assets/tree.png');
+
+
+  background-repeat: no-repeat;
+  background-position: 135% bottom; 
+  background-size: contain; /* Hiển thị toàn bộ cây thông, hoặc dùng 'cover' để phủ kín */
+  
+  
+  opacity: 0.75; 
+  z-index: 0; 
+  pointer-events: none; 
+  
+  
+  filter: drop-shadow(0 0 10px rgba(242, 234, 187, 0.5));
+}
+body::after {
+  content: "";
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+
+  background-image: url('./assets/tree.png');
+
+
+  background-repeat: no-repeat;
+  background-position: -35% bottom; 
+  background-size: contain; /* Hiển thị toàn bộ cây thông, hoặc dùng 'cover' để phủ kín */
+  
+  
+  opacity: 0.75; 
+  z-index: 0; 
+  pointer-events: none; 
+  
+  
+  filter: drop-shadow(0 0 10px rgba(242, 234, 187, 0.5));
+}
