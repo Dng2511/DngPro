@@ -139,7 +139,7 @@ const Cart = () => {
                 postOrder(payload, {}).then(({ data }) => {
                     if (data.status == "success") {
                         items.map(async (item) => {
-                            await updateCart({product_id: item._id, quantity: -1});
+                            if (isLoggedIn) await updateCart({product_id: item._id, quantity: -1});
                             dispatch({
                                 type: DELETE_CART,
                                 payload: {
