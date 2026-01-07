@@ -33,9 +33,21 @@ const userSchema = new mongoose.Schema({
         }
     ],
 
+    cart: [
+        {
+            product_id: { type: mongoose.Schema.Types.ObjectId, ref: 'Products', required: true },
+            quantity: { type: Number, required: true, default: 1 }
+        }
+    ],
+
     avatar: {
         type: String,
         default: null,
+    },
+    
+    is_banned: {
+        type: Boolean,
+        default: false,
     }
 }, { timestamps: true});
 const usersModel = mongoose.model("Users", userSchema, "users");

@@ -2,6 +2,7 @@ const UserModel = require("../models/user");
 const bcrypt = require("bcrypt");
 
 const createToken = require("../../libs/createToken");
+const pagination = require("../../libs/pagination");
 
 
 
@@ -62,6 +63,14 @@ exports.login = async (req, res) => {
             });
         }
 
+        if (user.is_banned) {
+            return res.status(403).json({
+                status: "error",
+                code: "USER_BANNED",
+                message: "User is banned"
+            });
+        }
+
         const isMatch = await bcrypt.compare(password, user.password);
         if (!isMatch) {
             return res.status(401).json({
@@ -91,17 +100,60 @@ exports.login = async (req, res) => {
 
 exports.index = async (req, res) => {
     try {
-        const users = await UserModel.find()
-            .select("-password") // không trả về mật khẩu
+        // Pagination support: ?page=1&limit=20
+        const page = Math.max(parseInt(req.query.page || "1"), 1);
+        const limit = Math.max(parseInt(req.query.limit || "20"), 1);
+        const skip = (page - 1) * limit;
+        const search = req.query.search || "";
+
+        const filter = {
+            role: "customer",
+        };
+
+        if (search) {
+            filter.$or = [
+                { phone: { $regex: search, $options: "i" } },
+                { name: { $regex: search, $options: "i" } },
+                { email: { $regex: search, $options: "i" } },
+            ];
+        }
+
+
+        const users = await UserModel.find(filter).select("-password -cart -addresses")
             .sort({ _id: -1 })
             .skip(skip)
             .limit(limit);
+
         res.status(200).json({
             status: "success",
-            data: { docs: users },
+            filter: {
+                page,
+                limit,
+                search,
+            },
+            data: {
+                docs: users,
+            },
+            pages: await pagination(UserModel, limit, page, filter),
         });
     } catch (error) {
-        res.status(500).json({ status: "error", message: "Internal server error" });
+        res.status(500).json({ status: "error", message: error.message });
+    }
+};
+
+// Admin: set ban status for a user
+exports.setBanStatus = async (req, res) => {
+    try {
+        const userId = req.params.id;
+        const { is_banned } = req.body;
+        if (typeof is_banned !== 'boolean') {
+            return res.status(400).json({ status: 'error', message: 'is_banned (boolean) is required' });
+        }
+        const user = await UserModel.findByIdAndUpdate(userId, { is_banned }, { new: true }).select('-password -cart');
+        if (!user) return res.status(404).json({ status: 'error', message: 'User not found' });
+        res.status(200).json({ status: 'success', message: 'User status updated', data: user });
+    } catch (error) {
+        res.status(500).json({ status: 'error', message: 'Internal server error' });
     }
 };
 
@@ -109,7 +161,7 @@ exports.index = async (req, res) => {
 exports.getProfile = async (req, res) => {
     try {
         const userId = req.user._id;
-        const user = await UserModel.findById(userId).select("-password");
+        const user = await UserModel.findById(userId).select("-password -cart");
         if (!user) {
             return res.status(404).json({ status: "error", message: "User not found" });
         }
@@ -118,7 +170,7 @@ exports.getProfile = async (req, res) => {
             data: user,
         });
     } catch (error) {
-        res.status(500).json({ status: "error", message: "Internal server error" });
+        res.status(500).json({ status: "error", message: error });
     }
 };
 
@@ -142,7 +194,7 @@ exports.updateEmail = async (req, res) => {
             userId,
             { email },
             { new: true }
-        ).select("-password");
+        ).select("-password -cart");
 
         res.status(200).json({
             status: "success",
@@ -168,7 +220,7 @@ exports.updatePhone = async (req, res) => {
             userId,
             { phone },
             { new: true }
-        ).select("-password");
+        ).select("-password -cart");
 
         res.status(200).json({
             status: "success",
@@ -243,13 +295,13 @@ exports.addAddress = async (req, res) => {
                 userId,
                 { $push: { addresses: newAddress } },
                 { new: true }
-            ).select("-password");
+            ).select("-password -cart");
         } else {
             user = await UserModel.findByIdAndUpdate(
                 userId,
                 { $push: { addresses: newAddress } },
                 { new: true }
-            ).select("-password");
+            ).select("-password -cart");
         }
 
         // Get the newly added address
@@ -296,7 +348,7 @@ exports.updateAddress = async (req, res) => {
                 },
             },
             { new: true }
-        ).select("-password");
+        ).select("-password -cart");
 
         if (!user) {
             return res.status(404).json({ status: "error", message: "Address not found" });
@@ -325,7 +377,7 @@ exports.deleteAddress = async (req, res) => {
             userId,
             { $pull: { addresses: { _id: addressId } } },
             { new: true }
-        ).select("-password");
+        ).select("-password -cart");
 
         if (!user) {
             return res.status(404).json({ status: "error", message: "Address not found" });
@@ -340,4 +392,103 @@ exports.deleteAddress = async (req, res) => {
         res.status(500).json({ status: "error", message: "Internal server error" });
     }
 };
+
+
+// Get Cart
+exports.getCart = async (req, res) => {
+    try {
+        const userId = req.user._id;
+
+        const cart = await UserModel.findById(userId)
+            .select("cart")
+            .populate({
+                path: "cart.product_id",
+                select: "_id name thumbnail price"
+            });
+
+        const formattedCart = cart.cart.map(item => ({
+            _id: item.product_id._id,
+            name: item.product_id.name,
+            thumbnail: item.product_id.thumbnail,
+            price: item.product_id.price,
+            qty: item.quantity,
+        }));
+
+        res.status(200).json({
+            status: "success",
+            data: formattedCart,
+        });
+    } catch (error) {
+        res.status(500).json({
+            status: "error",
+            message: "Internal server error"
+        });
+    }
+};
+
+exports.updateCart = async (req, res) => {
+    try {
+        const userId = req.user._id;
+        const { product_id, quantity } = req.body;
+        if (!product_id) {
+            return res.status(400).json({
+                status: "error",
+                message: "Product ID are required"
+            });
+        };
+        const user = await UserModel.findById(userId).select("cart");
+        const productIndex = user.cart.findIndex(item => item.product_id.toString() === product_id);
+        if (productIndex > -1) {
+            if (!quantity) user.cart[productIndex].quantity += 1;
+            else if (quantity <= 0) user.cart.splice(productIndex, 1);
+            else user.cart[productIndex].quantity = quantity;
+        } else {
+            // Product does not exist in cart, add new item
+            user.cart.push({ product_id, quantity: quantity || 1 });
+        }
+        await user.save();
+        res.status(200).json({
+            status: "success",
+            message: "Cart updated successfully",
+            data: user.cart,
+        });
+    } catch (error) {
+        res.status(500).json({
+            status: "error",
+            message: error
+        });
+    }
+};
+
+exports.deleteCart = async (req, res) => {
+    try {
+        const userId = req.user._id;
+        const { id } = req.body;
+        if (!id) {
+            return res.status(400).json({
+                status: "error",
+                message: "Product ID are required"
+            });
+        }
+        const user = await UserModel.findById(userId).select("cart");
+        const productIndex = user.cart.findIndex(item => item.product_id.toString() === id);
+        if (productIndex > -1) {
+            user.cart.splice(productIndex, 1);
+            await user.save();
+            res.status(200).json({
+                status: "success",
+                message: "Product removed from cart",
+                data: user.cart,
+            });
+        }
+    } catch (error) {
+        res.status(500).json({
+            status: "error",
+            message: error
+        });
+    }
+};
+
+
+
 

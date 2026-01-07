@@ -1,12 +1,13 @@
 import React from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { getImgProduct } from "../../shared/ultils";
-import {currencyType} from "../../shared/constants/currency-type";
+import { currencyType } from "../../shared/constants/currency-type";
 import { UPDATE_CART, DELETE_CART } from "../../shared/constants/action-type";
-import { getProfile, postOrder, deleteAddress } from "../../services/Api";
+import { getProfile, postOrder, deleteAddress, getPaymentUrl } from "../../services/Api";
 import AddAddress from "../../shared/components/Address/AddAddress";
 import EditAddress from "../../shared/components/Address/EditAddress";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "../../hooks/useAuth";
 const Cart = () => {
     const navigate = useNavigate();
     const items = useSelector(({ cart }) => cart.items);
@@ -19,37 +20,40 @@ const Cart = () => {
     const [editAddress, setEditAddress] = React.useState(null);
     const emailRegex = /[^@]{2,64}@[^.]{2,253}\.[0-9a-z-.]{2,63}/;
     const phoneRegex = /^\(?([0-9]{3})\)?[-. ]?([0-9]{3})[-. ]?([0-9]{4})$/;
+    const { isLoggedIn } = useAuth();
 
     React.useEffect(() => {
-        getProfile({}).then(({ data }) => {
-            if (data.status == "success") {
-                const p = data.data || {};
-                setProfile(p);
-                if (p.addresses && p.addresses.length > 0) {
-                    const def = p.addresses.find((a) => a.is_default) || p.addresses[0];
-                    setSelectedAddressId(def._id);
+        if (isLoggedIn) {
+            getProfile({}).then(({ data }) => {
+                if (data.status == "success") {
+                    const p = data.data || {};
+                    setProfile(p);
+                    if (p.addresses && p.addresses.length > 0) {
+                        const def = p.addresses.find((a) => a.is_default) || p.addresses[0];
+                        setSelectedAddressId(def._id);
+                    }
                 }
-            }
-        });
-    }, []);
+            });
+        }
+    }, [isLoggedIn]);
 
     const onChangeInfo = (e) => {
         const { name, value } = e.target;
         setProfile({ ...profile, [name]: value });
     };
     const updateCart = (id, e) => {
-        const qty = parseInt(e.target.value); 
-        if (qty <=0) deleteCart(e, id)
+        const qty = parseInt(e.target.value);
+        if (qty <= 0) deleteCart(e, id)
         dispatch({
             type: UPDATE_CART,
-            payload:{
+            payload: {
                 _id: id,
                 qty: parseInt(qty),
             }
         })
-        
+
     }
-    const deleteCart = (e, id) =>{
+    const deleteCart = (e, id) => {
         e.preventDefault();
         dispatch({
             type: DELETE_CART,
@@ -70,6 +74,10 @@ const Cart = () => {
         // attach selected address
         if (selectedAddressId && profile.addresses) {
             orderInfo.address = profile.addresses.find((a) => a._id === selectedAddressId);
+        } 
+        if ((!selectedAddressId || !profile.addresses) && !orderInfo.add){
+            setFormError("Chưa có địa chỉ nhận hàng");
+            return;
         }
 
         if (!emailRegex.test(orderInfo.email || "")) {
@@ -87,19 +95,58 @@ const Cart = () => {
 
         // submit
         else {
-            postOrder(orderInfo, {}).then(({data}) => {
-                if (data.status == "success") {
-                    items.map((item) => {
-                        dispatch({
-                            type: DELETE_CART,
-                            payload: {
-                                _id: item._id,
-                            }
+            if (paymentMethod === 'installment') {
+                // send full order info to server so it can create a pending order and return payment url
+                const payload = {
+                    name: orderInfo.full_name || orderInfo.name,
+                    mail: orderInfo.email || orderInfo.mail,
+                    phone: orderInfo.phone,
+                    add: orderInfo.add || orderInfo.address.ward + " " + orderInfo.address.province + " " + orderInfo.address.detail,
+                    items,
+                    paymentMethod: 'vnpay'
+                };
+                getPaymentUrl(payload, {}).then(({ data }) => {
+                    if (data.status === "success") {
+                        // keep a local fallback pending order in case client needs it
+                        try {
+                            const pending = { ...payload };
+                            localStorage.setItem('pendingOrder', JSON.stringify(pending));
+                            localStorage.setItem('pendingPayment', 'vnpay');
+                        } catch (e) {
+                            console.warn('Could not save pending order', e);
+                        }
+                        console.log(data);
+                        navigate(data.url);
+                    } else {
+                        setFormError("Đặt hàng thất bại!");
+                    }
+                }).catch((err) => {
+                    setFormError("Lỗi khi kết nối đến cổng thanh toán");
+                });
+                return;
+            } else {
+                const payload = {
+                    name: orderInfo.full_name || orderInfo.name,
+                    mail: orderInfo.email,
+                    phone: orderInfo.phone,
+                    add: orderInfo.add || orderInfo.address.detail + " " + orderInfo.address.ward + " " + orderInfo.address.province,
+                    items,
+                    paymentMethod: 'cod'
+                };
+                postOrder(payload, {}).then(({ data }) => {
+                    if (data.status == "success") {
+                        items.map((item) => {
+                            dispatch({
+                                type: DELETE_CART,
+                                payload: {
+                                    _id: item._id,
+                                }
+                            })
                         })
-                    })
-                    navigate('/Success');
-                } else setFormError("Đặt hàng thất bại!");
-            })
+                        navigate('/success');
+                    } else setFormError("Đặt hàng thất bại!");
+                })
+            }
         };
 
     }
@@ -138,33 +185,33 @@ const Cart = () => {
                     </div>
                     <form method="post">
                     </form>
-                            <div>
-                                {items.map((item) => (
-                                    <div key={item._id} className="cart-item row">
-                                        <div className="cart-thumb col-lg-7 col-md-7 col-sm-12">
-                                            <img src={getImgProduct(item.thumbnail)} />
-                                            <h4>{item.name}</h4>
-                                        </div>
-                                        <div className="cart-quantity col-lg-2 col-md-2 col-sm-12">
-                                            <input type="number" id="quantity" className="form-control form-blue quantity" onChange={(e) => updateCart(item._id, e)} value={item.qty}></input>
-                                        </div>
-                                        <div className="cart-price col-lg-3 col-md-3 col-sm-12"><b>{currencyType(item.qty*item.price)}</b><a onClick={(e) => deleteCart(e, item._id)} href="#">Xóa</a></div>
-                                    </div>
-                                ))}
+                    <div>
+                        {items.map((item) => (
+                            <div key={item._id} className="cart-item row">
+                                <div className="cart-thumb col-lg-7 col-md-7 col-sm-12">
+                                    <img src={getImgProduct(item.thumbnail)} />
+                                    <h4>{item.name}</h4>
+                                </div>
+                                <div className="cart-quantity col-lg-2 col-md-2 col-sm-12">
+                                    <input type="number" id="quantity" className="form-control form-blue quantity" onChange={(e) => updateCart(item._id, e)} value={item.qty}></input>
+                                </div>
+                                <div className="cart-price col-lg-3 col-md-3 col-sm-12"><b>{currencyType(item.qty * item.price)}</b><a onClick={(e) => deleteCart(e, item._id)} href="#">Xóa</a></div>
                             </div>
-                        
+                        ))}
+                    </div>
 
-                        <div className="row">
-                            <div className="cart-thumb col-lg-7 col-md-7 col-sm-12">
-                            </div>
-                            <div className="cart-total col-lg-2 col-md-2 col-sm-12"><b>Tổng cộng:</b></div>
-                            <div className="cart-price col-lg-3 col-md-3 col-sm-12"><b>{currencyType(items.reduce((total, item)=>total + item.qty*item.price, 0))}</b></div>
+
+                    <div className="row">
+                        <div className="cart-thumb col-lg-7 col-md-7 col-sm-12">
                         </div>
+                        <div className="cart-total col-lg-2 col-md-2 col-sm-12"><b>Tổng cộng:</b></div>
+                        <div className="cart-price col-lg-3 col-md-3 col-sm-12"><b>{currencyType(items.reduce((total, item) => total + item.qty * item.price, 0))}</b></div>
+                    </div>
                 </div>
                 {/*	End Cart	*/}
                 {/*	Customer Info	*/}
                 <div id="customer">
-                    <form method="post">
+                    {isLoggedIn ? (<form method="post">
                         <div className="order-card">
                             <h3>Thông tin đặt hàng</h3>
                             <div className="order-field"><div className="label">Họ và tên</div><div>{profile.full_name || "(Chưa có)"}</div></div>
@@ -195,7 +242,6 @@ const Cart = () => {
                                         </div>
                                     ) : (
                                         <div>
-                                            <input className="form-control" placeholder="Địa chỉ nhà riêng hoặc cơ quan (bắt buộc)" value={profile.add || ""} onChange={onChangeInfo} name="add" />
                                             <div style={{ marginTop: 8 }}>
                                                 <button className="btn btn-sm btn-success" onClick={(e) => { e.preventDefault(); setShowAddAddress(true); }}>+ Thêm địa chỉ</button>
                                             </div>
@@ -204,26 +250,57 @@ const Cart = () => {
                                 </div>
                             </div>
                             <div className="order-field">
-                                <div className="label">Thanh toán</div>
+                                <div className="label">Phương thức thanh toán</div>
                                 <div>
-                                    <label className="payment-option" style={{display:'inline-flex', alignItems:'center', gap:8}}>
+                                    <label className="payment-option" style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
                                         <input type="radio" name="payment" value="cod" checked={paymentMethod === 'cod'} onChange={() => setPaymentMethod('cod')} />
                                         Thanh toán khi nhận hàng
                                     </label>
-                                    <label className="payment-option" style={{display:'inline-flex', alignItems:'center', gap:8, marginLeft:12}}>
+                                    <label className="payment-option" style={{ display: 'inline-flex', alignItems: 'center', gap: 8, marginLeft: 12 }}>
                                         <input type="radio" name="payment" value="installment" checked={paymentMethod === 'installment'} onChange={() => setPaymentMethod('installment')} />
                                         Thanh toán trực tuyến
                                     </label>
                                 </div>
                             </div>
                         </div>
-                    </form>
+                    </form>) : (
+                        <form method="post">
+                            <div className="row">
+                                <div id="customer-name" className="col-lg-4 col-md-4 col-sm-12">
+                                    <input onChange={(e) => onChangeInfo(e)} placeholder="Họ và tên (bắt buộc)" type="text" name="name" className="form-control" required />
+                                </div>
+                                <div id="customer-phone" className="col-lg-4 col-md-4 col-sm-12">
+                                    <input onChange={(e) => onChangeInfo(e)} placeholder="Số điện thoại (bắt buộc)" type="text" name="phone" className="form-control" required />
+                                </div>
+                                <div id="customer-mail" className="col-lg-4 col-md-4 col-sm-12">
+                                    <input onChange={(e) => onChangeInfo(e)} placeholder="Email (bắt buộc)" type="email" name="email" className="form-control" required />
+                                </div>
+                                <div id="customer-add" className="col-lg-12 col-md-12 col-sm-12">
+                                    <input onChange={(e) => onChangeInfo(e)} placeholder="Địa chỉ nhà riêng hoặc cơ quan (bắt buộc)" type="text" name="add" className="form-control" required />
+                                </div>
+                            </div>
+                            <div className="order-field">
+                                <div className="label">Phương thức thanh toán</div>
+                                <div>
+                                    <label className="payment-option" style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
+                                        <input type="radio" name="payment" value="cod" checked={paymentMethod === 'cod'} onChange={() => setPaymentMethod('cod')} />
+                                        Thanh toán khi nhận hàng
+                                    </label>
+                                    <label className="payment-option" style={{ display: 'inline-flex', alignItems: 'center', gap: 8, marginLeft: 12 }}>
+                                        <input type="radio" name="payment" value="installment" checked={paymentMethod === 'installment'} onChange={() => setPaymentMethod('installment')} />
+                                        Thanh toán trực tuyến
+                                    </label>
+                                </div>
+                            </div>
+                        </form>
+                    )}
+
                     <div className="row">
                         <div className="col-12">
                             {formError && <div className="message-error">{formError}</div>}
                             {formSuccess && <div className="message-success">{formSuccess}</div>}
                             <div className="checkout-buttons">
-                                <button className="btn-checkout btn-primary-checkout" onClick={(e) => order(e)}>Mua ngay<br/><small style={{display:"block", color:"rgba(255,255,255,0.9)"}}>Giao hàng tận nơi siêu tốc</small></button>
+                                <button className="btn-checkout btn-primary-checkout" onClick={(e) => order(e)}>Mua ngay<br /><small style={{ display: "block", color: "rgba(255,255,255,0.9)" }}>Giao hàng tận nơi siêu tốc</small></button>
                             </div>
                         </div>
                     </div>

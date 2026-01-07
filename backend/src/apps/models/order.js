@@ -3,6 +3,7 @@ const mongoose = require('../../common/database')();
 const itemSchema = new mongoose.Schema({
     prd_id: {
         type: mongoose.Types.ObjectId,
+        ref: 'Products',
         required: true,
     },
     qty: {
@@ -16,6 +17,11 @@ const itemSchema = new mongoose.Schema({
 })
 
 const orderSchema = new mongoose.Schema({
+    user: {
+        type: mongoose.Types.ObjectId,
+        ref: 'Users',
+        default: null,
+    },
     totalPrice: {
         type: Number,
         required: true,
@@ -42,6 +48,10 @@ const orderSchema = new mongoose.Schema({
     items: {
         type: [itemSchema],
         required: true,
+    },
+    status: {
+        type: Number,
+        default: 0,
     }
 }, { timestamps: true })
 

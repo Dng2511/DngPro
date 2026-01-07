@@ -1,6 +1,8 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { postLogin } from "../../services/Api";
+import { getCart, postLogin } from "../../services/Api";
+import { useDispatch } from "react-redux";
+import { SET_CART } from "../../shared/constants/action-type";
 import "./login.css";
 
 const Login = () => {
@@ -10,6 +12,7 @@ const Login = () => {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
     const [success, setSuccess] = useState("");
+    const dispatch = useDispatch();
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -32,10 +35,13 @@ const Login = () => {
             if (response.data.status === "success") {
                 setSuccess("Đăng nhập thành công!");
                 // Lưu token và user info vào localStorage
-                console.log(response.data);
 
                 localStorage.setItem("token", response.data.token);
                 localStorage.setItem("user", JSON.stringify(response.data.data));
+                await getCart().then(({ data }) => { 
+                    console.log(data);
+                    dispatch({ type: SET_CART, payload: data.data || [] }); 
+                });
                 navigate("/");
             }
         } catch (err) {

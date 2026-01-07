@@ -1,16 +1,18 @@
 import React from "react";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
-import { getCommentsProduct, getProductDetails, postCommentsProduct } from "../../services/Api";
+import { getCommentsProduct, getProductDetails, postCommentsProduct, updateCart } from "../../services/Api";
 import { getImgProduct } from "../../shared/ultils";
 import moment from "moment/moment";
 import { useDispatch } from "react-redux";
 import { ADD_TO_CART } from "../../shared/constants/action-type";
 import { currencyType } from "../../shared/constants/currency-type";
 import Pagination from "../../shared/components/Pagination";
+import { useAuth } from "../../hooks/useAuth";
 const ProductDetails = () => {
     const param = useParams();
     const [searchParams] = useSearchParams();
     const navigate =useNavigate();
+    const { isLoggedIn, user } = useAuth();
     const id = param.id;
     const page = searchParams.get("page") || 1;
     const dispatch = useDispatch();
@@ -18,7 +20,8 @@ const ProductDetails = () => {
     const {name, thumbnail, accessories, status, promotion, price, is_stock, details} = productDetails;
     const [commentsList, setComment] = React.useState([]);
     const [inputComment, setInputComment] = React.useState({});
-    const [pages, setPages] = React.useState({})
+    const [pages, setPages] = React.useState({});
+    const [commentError, setCommentError] = React.useState(null);
     const getComment = (id) => getCommentsProduct(id, {
         params: {
             page,
@@ -37,16 +40,35 @@ const ProductDetails = () => {
     }
 
     const onSubmitComment = (e) => {
+        e.preventDefault();
+        
+        if (!isLoggedIn) {
+            setCommentError("Vui lòng đăng nhập để bình luận");
+            return;
+        }
 
-        e.preventDefault()
-        postCommentsProduct(id, inputComment, {}).then(({ data }) => {
-            if (data.status === "success") setInputComment({});
-            getComment(id);
+        const payload = {
+            ...inputComment,
+            full_name: user?.full_name,
+            email: user?.email,
+        };
+
+        postCommentsProduct(id, payload, {}).then(({ data }) => {
+            if (data.status === "success") {
+                setInputComment({});
+                setCommentError(null);
+                getComment(id);
+            } else {
+                setCommentError(data.message || "Gửi bình luận thất bại");
+            }
+        }).catch((err) => {
+            setCommentError("Lỗi gửi bình luận");
         })
     }
 
 
     const addToCart = (type) =>{
+        if (isLoggedIn) updateCart({product_id: id});
         dispatch({
             type: ADD_TO_CART,
             payload: {
@@ -58,7 +80,7 @@ const ProductDetails = () => {
             }
         })
         if (type ==="buy-now") {
-            return navigate("/Cart");
+            return navigate("/cart");
         }
     }
 
@@ -102,21 +124,21 @@ const ProductDetails = () => {
                     <div id="comment" className="row">
                         <div className="col-lg-12 col-md-12 col-sm-12">
                             <h3>Bình luận sản phẩm</h3>
-                            <form method="post">
-                                <div className="form-group">
-                                    <label>Tên:</label>
-                                    <input onChange={onChangeInput} name="full_name" required type="text" className="form-control" value={inputComment.full_name || ""} />
+                            {!isLoggedIn ? (
+                                <div style={{ padding: "16px", backgroundColor: "#fff3cd", border: "1px solid #ffc107", borderRadius: "4px", marginBottom: "16px" }}>
+                                    <p style={{ margin: 0, color: "#856404" }}>Vui lòng <a href="/Login" style={{color:"#0c63e4"}}>đăng nhập</a> để bình luận sản phẩm.</p>
                                 </div>
-                                <div className="form-group">
-                                    <label>Email:</label>
-                                    <input onChange={onChangeInput} name="email" required type="email" className="form-control" id="pwd" value={inputComment.email || ""} />
-                                </div>
-                                <div className="form-group">
-                                    <label>Nội dung:</label>
-                                    <textarea onChange={onChangeInput} name="body" required rows={8} className="form-control" defaultValue={""} value={inputComment.body || ""} />
-                                </div>
-                                <button onClick={onSubmitComment} type="submit" name="sbm" className="btn btn-primary">Gửi</button>
-                            </form>
+                            ) : (
+                                <form method="post" onSubmit={onSubmitComment}>
+                                    {commentError && <div style={{ color: "#b00020", marginBottom: "12px", padding: "8px", backgroundColor: "#ffebee", borderRadius: "4px" }}>{commentError}</div>}
+                                    <div style={{ marginBottom: "12px", color: "#495057" }}>Bạn đang bình luận với tư cách: <b>{user?.full_name}</b> ({user?.email})</div>
+                                    <div className="form-group">
+                                        <label>Nội dung:</label>
+                                        <textarea onChange={onChangeInput} name="body" required rows={8} className="form-control" defaultValue={""} value={inputComment.body || ""} />
+                                    </div>
+                                    <button type="submit" name="sbm" className="btn btn-primary">Gửi</button>
+                                </form>
+                            )}
                         </div>
                     </div>
                     {/*	End Comment	*/}
@@ -128,7 +150,7 @@ const ProductDetails = () => {
                                 return (
                                     <div className="comment-item">
                                         <ul>
-                                            <li><b>{cmt.full_name}</b></li>
+                                            <li><b>{cmt.name}</b></li>
                                             <li>{moment(cmt.updatedAt).fromNow()}</li>
                                             <li>
                                                 <p>{cmt.body}</p>

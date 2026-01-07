@@ -75,3 +75,57 @@ exports.searchById = async (req, res) => {
         });
     }
 }
+
+exports.create = async (req, res) => {
+    try {
+        const { title, description } = req.body;
+        const newCategory = new CategoryModel({
+            title,
+            description,
+            slug: title.toLowerCase().replace(/\s+/g, '-')
+        });
+        await newCategory.save();
+        res.status(201).json({
+            status: "success",
+            data: newCategory
+        });
+    } catch (error) {
+        res.status(500).json({
+            status: "error",
+            message: error.message,
+        });
+    }
+}
+
+exports.update = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { title, description } = req.body;
+        const updatedCategory = await CategoryModel.findByIdAndUpdate(id, { title, description }, { new: true });
+        res.status(200).json({
+            status: "success",
+            data: updatedCategory
+        });
+    } catch (error) {
+        res.status(500).json({
+            status: "error",
+            message: error.message,
+        });
+    }
+}
+
+exports.delete = async (req, res) => {
+    try {
+        const { id } = req.params;
+        await CategoryModel.findByIdAndDelete(id);
+        res.status(200).json({
+            status: "success",
+            message: "Category deleted successfully"
+        });
+    } catch (error) {
+        res.status(500).json({
+            status: "error",
+            message: error.message,
+        });
+    }
+}
