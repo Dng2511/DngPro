@@ -99,9 +99,9 @@ const ProductDetails = () => {
                             <h1>{name}</h1>
                             <ul>
                                 <li><span>Bảo hành:</span> 12 Tháng</li>
-                                <li><span>Đi kèm:</span> {accessories}</li>
+                                <li><span>Đi kèm:</span> {accessories === "undefined" ? "Không có phụ kiện đi kèm" : accessories}</li>
                                 <li><span>Tình trạng:</span> {status}</li>
-                                <li><span>Khuyến Mại:</span>{promotion}</li>
+                                <li><span>Khuyến Mại:</span>{promotion==="undefined" ? "Không có khuyến mại" : promotion}</li>
                                 <li id="price">Giá Bán (chưa bao gồm VAT)</li>
                                 <li id="price-number">{currencyType(price)}</li>
                                 <li id="status">{is_stock ? "Còn hàng" : "Hết hàng"}</li>
