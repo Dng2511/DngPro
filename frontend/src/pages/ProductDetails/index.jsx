@@ -116,7 +116,7 @@ const ProductDetails = () => {
                     </div>
                     <div id="product-body" className="row">
                         <div className="col-lg-12 col-md-12 col-sm-12">
-                            <h3>Đánh giá về iPhone X 64GB</h3>
+                            <h3>Đánh giá về {name}</h3>
                             <p>{details}</p>
                         </div>
                     </div>
